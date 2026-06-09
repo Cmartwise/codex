@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1c3d28">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CODEX">
+<title>CODEX — Personal OS</title>
+<style>
+:root {
+  --bg: #f2ede0; --surface: #ece6d4; --card: #faf7f0;
+  --forest: #1c3d28; --forest2: #2e6644; --leaf: #4db86a;
+  --leaf-bg: rgba(77,184,106,0.12); --leaf-border: rgba(77,184,106,0.4);
+  --gold: #c8881a; --gold2: #e8a820; --gold-bg: #fdf5df; --gold-border: rgba(200,136,26,0.3);
+  --earth: #7a4e2a; --earth-bg: rgba(122,78,42,0.08);
+  --urgent: #c04030; --urgent-bg: #fdf0ee;
+  --text: #1a2e1a; --muted: #5a7055; --faint: #a0b89a;
+  --border: rgba(28,61,40,0.1); --shadow: 0 2px 8px rgba(28,61,40,0.08);
+  --radius: 12px; --radius-sm: 8px;
+  --nav-h: 64px; --header-h: 56px;
+  color-scheme: light;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+
+/* ── HEADER ── */
+.app-header{
+  height:var(--header-h);background:var(--forest);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;flex-shrink:0;position:relative;overflow:hidden;
+}
+.app-header::after{content:'🌿';position:absolute;right:-4px;top:-8px;font-size:52px;opacity:.06;transform:rotate(15deg)}
+.header-left{display:flex;align-items:center;gap:10px}
+.codex-logo{font-size:15px;font-weight:bold;color:var(--gold2);letter-spacing:1px;font-style:italic}
+.header-date{font-size:10px;color:rgba(232,240,226,.5);font-family:monospace}
+.xp-pill{
+  background:rgba(200,136,26,.2);border:1px solid rgba(200,136,26,.3);
+  border-radius:20px;padding:3px 10px;
+  font-size:10px;color:var(--gold2);font-family:monospace;white-space:nowrap;
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+  height:var(--nav-h);background:var(--forest);
+  display:flex;align-items:stretch;flex-shrink:0;
+  border-top:1px solid rgba(255,255,255,.08);
+  padding-bottom:env(safe-area-inset-bottom,0);
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;background:none;border:none;cursor:pointer;
+  color:rgba(232,240,226,.45);font-family:Georgia,serif;font-size:9px;
+  letter-spacing:.5px;text-transform:uppercase;transition:color .2s;padding:0;
+}
+.nav-btn.active{color:var(--gold2)}
+.nav-btn .nav-icon{font-size:20px;line-height:1}
+
+/* ── PAGES ── */
+.pages{flex:1;overflow:hidden;position:relative}
+.page{
+  position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
+  padding:14px 14px calc(14px + env(safe-area-inset-bottom,0));
+  display:none;-webkit-overflow-scrolling:touch;
+}
+.page.active{display:block}
+
+/* ── SECTION TITLE ── */
+.sec{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);
+  font-family:monospace;margin:16px 0 8px;display:flex;align-items:center;gap:6px}
+.sec::after{content:'';flex:1;height:1px;background:var(--border)}
+.sec:first-child{margin-top:2px}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:10px}
+.card-sm{background:var(--card);border-radius:var(--radius-sm);padding:10px 12px;box-shadow:var(--shadow);margin-bottom:8px}
+
+/* ── PROGRESS BAR ── */
+.prog-wrap{margin:8px 0 4px}
+.prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px}
+.prog-track{height:6px;background:var(--surface);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--leaf),#7dd89a);border-radius:3px;transition:width .5s}
+
+/* ── PRIORITY CHIPS ── */
+.chip{display:inline-block;font-size:8px;letter-spacing:1px;text-transform:uppercase;
+  padding:2px 6px;border-radius:3px;font-family:monospace}
+.chip.critical{background:var(--urgent-bg);color:var(--urgent)}
+.chip.high{background:var(--gold-bg);color:var(--gold)}
+.chip.medium{background:var(--leaf-bg);color:var(--forest2)}
+.chip.low{background:var(--earth-bg);color:var(--earth)}
+
+/* ── KANBAN ── */
+.kanban-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -14px;padding:0 14px 8px}
+.kanban-board{display:flex;gap:10px;width:max-content;min-width:100%}
+.kanban-col{width:200px;flex-shrink:0}
+.kanban-col-title{
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  font-family:monospace;color:var(--muted);margin-bottom:6px;
+  display:flex;align-items:center;gap:5px;
+}
+.kanban-col-title .col-count{
+  background:var(--surface);border-radius:10px;
+  padding:1px 6px;font-size:8px;color:var(--faint);
+}
+.kanban-card{
+  background:var(--card);border-radius:var(--radius-sm);padding:10px;
+  margin-bottom:6px;box-shadow:var(--shadow);cursor:pointer;
+  border-left:3px solid var(--leaf);transition:transform .15s;
+  user-select:none;
+}
+.kanban-card:active{transform:scale(.98)}
+.kanban-card.critical{border-left-color:var(--urgent)}
+.kanban-card.high{border-left-color:var(--gold2)}
+.kanban-card.medium{border-left-color:var(--leaf)}
+.kanban-card.low{border-left-color:var(--faint)}
+.kanban-card.done{opacity:.45}
+.kanban-card .k-title{font-size:12px;line-height:1.4;color:var(--text)}
+.kanban-card.done .k-title{text-decoration:line-through}
+.kanban-card .k-meta{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.kanban-card .k-phase{font-size:9px;color:var(--faint);font-family:monospace}
+.kanban-hint{font-size:10px;color:var(--faint);font-style:italic;text-align:center;padding:10px 0}
+
+/* ── PROJECT OVERVIEW CARD ── */
+.proj-card{
+  background:var(--card);border-radius:var(--radius);padding:14px;
+  box-shadow:var(--shadow);margin-bottom:10px;cursor:pointer;
+  border-left:4px solid var(--leaf);transition:transform .15s;
+}
+.proj-card:active{transform:translateX(2px)}
+.proj-card.biz{border-left-color:var(--gold2)}
+.proj-card.garden{border-left-color:var(--leaf)}
+.proj-card.nwp{border-left-color:#6ab4c0}
+.proj-card.personal{border-left-color:#a07ad0}
+.proj-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.proj-title{font-size:15px;font-style:italic;color:var(--text)}
+.proj-badge{font-size:10px;font-family:monospace;padding:2px 8px;border-radius:10px}
+.proj-badge.urgent{background:var(--urgent-bg);color:var(--urgent)}
+.proj-badge.active{background:var(--leaf-bg);color:var(--forest2)}
+.proj-badge.future{background:var(--earth-bg);color:var(--earth)}
+.proj-desc{font-size:11px;color:var(--muted);margin-bottom:8px;font-style:italic;line-height:1.5}
+.proj-next{font-size:11px;color:var(--text);margin-top:6px}
+.proj-next strong{color:var(--forest2)}
+
+/* ── GANTT ── */
+.gantt-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -14px;padding:0 14px 8px}
+.gantt-svg{display:block;min-width:560px}
+
+/* ── QUEST CARDS ── */
+.quest-card{
+  background:var(--card);border-radius:var(--radius-sm);padding:10px 12px;
+  margin-bottom:8px;border-left:3px solid var(--leaf);box-shadow:var(--shadow);
+  cursor:pointer;transition:all .15s;user-select:none;
+}
+.quest-card:active{transform:translateX(2px)}
+.quest-card.done{opacity:.45}
+.quest-card.critical{border-left-color:var(--urgent)}
+.q-row{display:flex;align-items:flex-start;gap:8px}
+.q-check{
+  width:17px;height:17px;flex-shrink:0;margin-top:1px;
+  border:1.5px solid var(--leaf);border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:white;transition:background .2s;
+}
+.quest-card.done .q-check{background:var(--leaf);border-color:var(--leaf)}
+.q-body{flex:1}
+.q-title{font-size:12px;line-height:1.4}
+.quest-card.done .q-title{text-decoration:line-through}
+.q-note{font-size:10px;color:var(--muted);margin-top:2px;font-style:italic}
+.q-foot{display:flex;justify-content:space-between;align-items:center;margin-top:5px}
+.q-xp{font-size:10px;color:var(--gold);font-family:monospace}
+
+/* ── STAT ROW ── */
+.stat-row{display:flex;gap:8px;margin-bottom:10px}
+.stat-box{
+  flex:1;background:var(--card);border-radius:var(--radius-sm);
+  padding:10px;text-align:center;box-shadow:var(--shadow);
+}
+.stat-val{display:block;font-size:22px;color:var(--gold);line-height:1.1}
+.stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-family:monospace}
+
+/* ── DAY BLOCKS ── */
+.day-block{
+  display:flex;align-items:center;gap:8px;margin-bottom:5px;
+}
+.day-time{width:38px;font-size:9px;color:var(--muted);font-family:monospace;text-align:right;flex-shrink:0}
+.day-bar{
+  flex:1;border-radius:6px;padding:5px 10px;
+  font-size:11px;min-height:28px;display:flex;align-items:center;
+}
+.day-bar.session{background:var(--gold-bg);border:1px solid var(--gold-border);color:#7a4e10}
+.day-bar.free{background:var(--leaf-bg);border:1px dashed var(--leaf-border);color:var(--forest2);font-style:italic}
+.day-bar.routine{background:var(--earth-bg);border:1px solid var(--border);color:var(--muted)}
+
+/* ── AI PAGE ── */
+.ai-context{
+  background:var(--forest);color:#e8f0e2;border-radius:var(--radius);
+  padding:14px;margin-bottom:12px;font-size:11px;line-height:1.7;
+  font-family:monospace;
+}
+.ai-context .ctx-label{font-size:9px;letter-spacing:2px;color:rgba(232,240,226,.4);margin-bottom:6px;display:block}
+.ai-btn{
+  display:block;width:100%;padding:12px;border-radius:var(--radius-sm);
+  border:none;cursor:pointer;font-family:Georgia,serif;font-size:13px;
+  margin-bottom:8px;text-align:left;transition:all .15s;
+}
+.ai-btn.primary{background:var(--forest);color:#e8f0e2}
+.ai-btn.primary:active{background:var(--forest2)}
+.ai-btn.secondary{background:var(--card);color:var(--text);box-shadow:var(--shadow);border:1px solid var(--border)}
+.ai-btn.secondary:active{background:var(--surface)}
+.ai-btn-icon{margin-right:8px}
+.ai-textarea{
+  width:100%;min-height:120px;border-radius:var(--radius-sm);border:1px solid var(--border);
+  background:var(--card);color:var(--text);font-family:monospace;font-size:10px;
+  padding:10px;resize:vertical;outline:none;
+}
+.ai-textarea:focus{border-color:var(--leaf)}
+.copy-flash{display:none;background:var(--leaf-bg);border-radius:var(--radius-sm);
+  padding:8px;text-align:center;font-size:11px;color:var(--forest2);margin-top:8px}
+
+/* ── TABS inside project pages ── */
+.tab-bar{display:flex;gap:2px;background:var(--surface);border-radius:var(--radius-sm);padding:3px;margin-bottom:12px}
+.tab-btn{
+  flex:1;padding:7px 4px;border:none;border-radius:7px;cursor:pointer;
+  font-size:10px;font-family:Georgia,serif;background:none;color:var(--muted);transition:all .2s;
+}
+.tab-btn.active{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ── ADD TASK BUTTON ── */
+.add-btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;padding:10px;border-radius:var(--radius-sm);
+  border:1.5px dashed var(--border);background:none;color:var(--muted);
+  font-family:Georgia,serif;font-size:12px;cursor:pointer;margin-top:4px;
+}
+.add-btn:active{background:var(--surface)}
+
+/* ── MODAL ── */
+.modal-backdrop{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);
+  z-index:100;align-items:flex-end;justify-content:center;
+}
+.modal-backdrop.open{display:flex}
+.modal{
+  background:var(--card);border-radius:var(--radius) var(--radius) 0 0;
+  padding:20px;width:100%;max-width:500px;
+  padding-bottom:calc(20px + env(safe-area-inset-bottom,0));
+}
+.modal h3{font-size:15px;margin-bottom:14px;font-style:italic}
+.modal input,.modal select,.modal textarea{
+  width:100%;padding:9px 11px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:var(--surface);
+  color:var(--text);font-family:Georgia,serif;font-size:13px;
+  margin-bottom:10px;outline:none;
+}
+.modal input:focus,.modal select:focus{border-color:var(--leaf)}
+.modal-btns{display:flex;gap:8px}
+.btn-primary{
+  flex:1;padding:11px;border-radius:var(--radius-sm);border:none;
+  background:var(--forest);color:#e8f0e2;font-family:Georgia,serif;font-size:13px;cursor:pointer;
+}
+.btn-cancel{
+  padding:11px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);
+  background:none;color:var(--muted);font-family:Georgia,serif;font-size:13px;cursor:pointer;
+}
+
+/* ── PROJECT PAGE HEADER ── */
+.proj-page-header{
+  background:var(--forest);border-radius:var(--radius);
+  padding:14px;margin-bottom:12px;color:#e8f0e2;position:relative;overflow:hidden;
+}
+.proj-page-header::after{position:absolute;right:10px;bottom:-5px;font-size:48px;opacity:.07}
+.proj-page-header.biz::after{content:'💼'}
+.proj-page-header.garden::after{content:'🌱'}
+.proj-page-header.nwp::after{content:'🌍'}
+.pph-label{font-size:9px;letter-spacing:2px;opacity:.5;font-family:monospace;margin-bottom:3px}
+.pph-title{font-size:18px;font-style:italic;margin-bottom:8px}
+.pph-prog-track{height:4px;background:rgba(255,255,255,.15);border-radius:2px}
+.pph-prog-fill{height:100%;background:linear-gradient(90deg,var(--gold2),#f5d07a);border-radius:2px;transition:width .5s}
+.pph-stats{display:flex;gap:14px;margin-top:8px}
+.pph-stat{font-size:10px;opacity:.6;font-family:monospace}
+.pph-stat span{color:var(--gold2);font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="header-left">
+    <div class="codex-logo">CODEX</div>
+    <div class="header-date" id="hdr-date">—</div>
+  </div>
+  <div class="xp-pill" id="xp-pill">0 XP today</div>
+</div>
+
+<div class="pages">
+
+  <!-- ══ HOME / DASHBOARD ══ -->
+  <div class="page active" id="page-home">
+    <div class="sec">Today's Mission</div>
+    <div class="stat-row" id="home-stats">
+      <div class="stat-box"><span class="stat-val" id="s-sessions">—</span><span class="stat-lbl">Sessions</span></div>
+      <div class="stat-box"><span class="stat-val" id="s-free">—</span><span class="stat-lbl">Free hrs</span></div>
+      <div class="stat-box"><span class="stat-val" id="s-quests">0/3</span><span class="stat-lbl">Quests</span></div>
+    </div>
+
+    <div class="sec">Daily Quests</div>
+    <div id="quest-list"></div>
+
+    <div class="sec">Day Shape</div>
+    <div id="day-shape"></div>
+
+    <div class="sec">Overall Progress</div>
+    <div id="overall-progress"></div>
+  </div>
+
+  <!-- ══ PROJECTS HUB ══ -->
+  <div class="page" id="page-projects">
+    <div class="sec">Active Projects</div>
+    <div id="proj-hub"></div>
+  </div>
+
+  <!-- ══ COACHING ══ -->
+  <div class="page" id="page-biz">
+    <div class="proj-page-header biz">
+      <div class="pph-label">PROJECT · BUSINESS</div>
+      <div class="pph-title">Coaching Business</div>
+      <div class="pph-prog-track"><div class="pph-prog-fill" id="biz-prog-fill" style="width:0%"></div></div>
+      <div class="pph-stats">
+        <div class="pph-stat"><span id="biz-done">0</span> done</div>
+        <div class="pph-stat"><span id="biz-todo">0</span> to do</div>
+        <div class="pph-stat">🎯 Revenue priority</div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('biz','kanban')">Kanban</button>
+      <button class="tab-btn" onclick="switchTab('biz','next')">Next Actions</button>
+    </div>
+    <div class="tab-content active" id="biz-tab-kanban"><div class="kanban-scroll"><div class="kanban-board" id="biz-kanban"></div></div></div>
+    <div class="tab-content" id="biz-tab-next"><div id="biz-next"></div></div>
+    <button class="add-btn" onclick="openAddTask('biz')">+ Add task</button>
+  </div>
+
+  <!-- ══ GARDEN APP ══ -->
+  <div class="page" id="page-garden">
+    <div class="proj-page-header garden">
+      <div class="pph-label">PROJECT · APP</div>
+      <div class="pph-title">The Garden App</div>
+      <div class="pph-prog-track"><div class="pph-prog-fill" id="garden-prog-fill" style="width:0%"></div></div>
+      <div class="pph-stats">
+        <div class="pph-stat"><span id="garden-done">0</span> done</div>
+        <div class="pph-stat"><span id="garden-todo">0</span> to do</div>
+        <div class="pph-stat">🗓 Aug 31 deadline</div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('garden','kanban')">Kanban</button>
+      <button class="tab-btn" onclick="switchTab('garden','gantt')">Timeline</button>
+      <button class="tab-btn" onclick="switchTab('garden','next')">Next Up</button>
+    </div>
+    <div class="tab-content active" id="garden-tab-kanban"><div class="kanban-scroll"><div class="kanban-board" id="garden-kanban"></div></div></div>
+    <div class="tab-content" id="garden-tab-gantt"><div class="gantt-wrap" id="garden-gantt"></div></div>
+    <div class="tab-content" id="garden-tab-next"><div id="garden-next"></div></div>
+    <button class="add-btn" onclick="openAddTask('garden')">+ Add task</button>
+  </div>
+
+  <!-- ══ VISION (NWP + Personal) ══ -->
+  <div class="page" id="page-vision">
+    <div class="proj-page-header nwp">
+      <div class="pph-label">PROJECT · NEW WORLD</div>
+      <div class="pph-title">New World Project</div>
+      <div class="pph-prog-track"><div class="pph-prog-fill" id="nwp-prog-fill" style="width:0%"></div></div>
+      <div class="pph-stats">
+        <div class="pph-stat"><span id="nwp-done">0</span> done</div>
+        <div class="pph-stat"><span id="nwp-todo">0</span> to do</div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('nwp','kanban')">Kanban</button>
+      <button class="tab-btn" onclick="switchTab('nwp','next')">Next Up</button>
+    </div>
+    <div class="tab-content active" id="nwp-tab-kanban"><div class="kanban-scroll"><div class="kanban-board" id="nwp-kanban"></div></div></div>
+    <div class="tab-content" id="nwp-tab-next"><div id="nwp-next"></div></div>
+    <button class="add-btn" onclick="openAddTask('nwp')">+ Add task</button>
+
+    <div class="sec" style="margin-top:18px">Personal Goals</div>
+    <div id="personal-list"></div>
+  </div>
+
+  <!-- ══ AI ASSISTANT ══ -->
+  <div class="page" id="page-ai">
+    <div class="sec">Context Snapshot</div>
+    <div class="ai-context" id="ai-context-box">
+      <span class="ctx-label">CODEX // AUTO-BRIEFING</span>
+      <span id="ai-ctx-text">Generating...</span>
+    </div>
+
+    <div class="sec">Ask Claude</div>
+    <button class="ai-btn primary" onclick="openClaude('focus')">
+      <span class="ai-btn-icon">🎯</span> What should I focus on today?
+    </button>
+    <button class="ai-btn secondary" onclick="openClaude('track')">
+      <span class="ai-btn-icon">📊</span> Am I on track with my projects?
+    </button>
+    <button class="ai-btn secondary" onclick="openClaude('garden')">
+      <span class="ai-btn-icon">🌱</span> What's next on the Garden App?
+    </button>
+    <button class="ai-btn secondary" onclick="openClaude('biz')">
+      <span class="ai-btn-icon">💼</span> Help me define my coaching offer
+    </button>
+    <button class="ai-btn secondary" onclick="openClaude('custom')">
+      <span class="ai-btn-icon">✏️</span> Ask something else...
+    </button>
+
+    <div id="custom-input" style="display:none;margin-top:8px">
+      <textarea class="ai-textarea" id="custom-q" placeholder="Type your question... The full project context will be included automatically."></textarea>
+      <button class="ai-btn primary" onclick="sendCustom()" style="margin-top:6px">Copy context + open Claude →</button>
+    </div>
+    <div class="copy-flash" id="copy-flash">✓ Context copied to clipboard — paste it into Claude!</div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="goPage('home')" id="nav-home">
+    <span class="nav-icon">🏠</span>Today
+  </button>
+  <button class="nav-btn" onclick="goPage('projects')" id="nav-projects">
+    <span class="nav-icon">📋</span>Projects
+  </button>
+  <button class="nav-btn" onclick="goPage('biz')" id="nav-biz">
+    <span class="nav-icon">💼</span>Business
+  </button>
+  <button class="nav-btn" onclick="goPage('garden')" id="nav-garden">
+    <span class="nav-icon">🌱</span>Garden
+  </button>
+  <button class="nav-btn" onclick="goPage('vision')" id="nav-vision">
+    <span class="nav-icon">🌍</span>Vision
+  </button>
+  <button class="nav-btn" onclick="goPage('ai')" id="nav-ai">
+    <span class="nav-icon">🤖</span>Ask AI
+  </button>
+</nav>
+
+<!-- ADD TASK MODAL -->
+<div class="modal-backdrop" id="add-modal">
+  <div class="modal">
+    <h3>Add Task</h3>
+    <input type="text" id="new-task-title" placeholder="Task title...">
+    <select id="new-task-priority">
+      <option value="critical">🔴 Critical</option>
+      <option value="high">🟡 High</option>
+      <option value="medium" selected>🟢 Medium</option>
+      <option value="low">⚪ Low</option>
+    </select>
+    <select id="new-task-status">
+      <option value="todo" selected>To Do</option>
+      <option value="doing">In Progress</option>
+      <option value="review">Review</option>
+      <option value="done">Done</option>
+    </select>
+    <input type="text" id="new-task-phase" placeholder="Phase or milestone (optional)...">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="confirmAddTask()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════
+
+const DEFAULT_DATA = {
+  quests: [
+    {id:'q_biz', tag:'business', title:'Write your coaching offer — 1 sentence + 3 bullets', note:'"I help [who] achieve [what] in [timeframe]." Write it. Today.', xp:100, priority:'critical', done:false},
+    {id:'q_app', tag:'app', title:'Install Node.js (LTS) + VS Code', note:'Phase 1 of the Garden App starts with these two installs.', xp:80, priority:'high', done:false},
+    {id:'q_dogs', tag:'personal', title:'Walk Linux and Zina ×3', note:'Morning, midday, evening. Your natural rhythm — use it.', xp:60, priority:'medium', done:false},
+  ],
+  projects: {
+    biz: {
+      tasks: [
+        {id:'b1', title:'Define core coaching offer (1 sentence + 3 bullets)', priority:'critical', status:'todo', phase:'Foundation'},
+        {id:'b2', title:'Reach out to 10 warm referrals', priority:'critical', status:'todo', phase:'Foundation'},
+        {id:'b3', title:'Build simple coaching landing page', priority:'high', status:'todo', phase:'Growth'},
+        {id:'b4', title:'Set monthly revenue target', priority:'high', status:'todo', phase:'Foundation'},
+        {id:'b5', title:'Create clear pricing structure', priority:'high', status:'todo', phase:'Foundation'},
+        {id:'b6', title:'Set up payment system (Stripe/PayPal)', priority:'medium', status:'todo', phase:'Growth'},
+        {id:'b7', title:'Collect first written testimonials', priority:'medium', status:'todo', phase:'Growth'},
+        {id:'b8', title:'Design student onboarding process', priority:'medium', status:'todo', phase:'Growth'},
+        {id:'b9', title:'Create social media content calendar', priority:'low', status:'todo', phase:'Scale'},
+        {id:'b10', title:'Explore group coaching format', priority:'low', status:'todo', phase:'Scale'},
+      ]
+    },
+    garden: {
+      tasks: [
+        // Phase 1 — Foundation (by Jun 29)
+        {id:'g1', title:'Install Node.js (LTS) + VS Code', priority:'critical', status:'todo', phase:'Phase 1'},
+        {id:'g2', title:'Install Expo CLI globally', priority:'critical', status:'todo', phase:'Phase 1'},
+        {id:'g3', title:'Create project: npx create-expo-app TheGarden', priority:'critical', status:'todo', phase:'Phase 1'},
+        {id:'g4', title:'Install Expo Go on phone + scan QR', priority:'high', status:'todo', phase:'Phase 1'},
+        {id:'g5', title:'Learn RN basics: View, Text, StyleSheet, useState', priority:'high', status:'todo', phase:'Phase 1'},
+        {id:'g6', title:'Convert Dashboard screen to React Native', priority:'high', status:'todo', phase:'Phase 1'},
+        {id:'g7', title:'Convert PlantCard component', priority:'medium', status:'todo', phase:'Phase 1'},
+        // Phase 2 — Build (by Jul 27)
+        {id:'g8', title:'Set up Supabase project', priority:'critical', status:'todo', phase:'Phase 2'},
+        {id:'g9', title:'Design and create DB schema', priority:'critical', status:'todo', phase:'Phase 2'},
+        {id:'g10', title:'Implement auth (email + anonymous)', priority:'high', status:'todo', phase:'Phase 2'},
+        {id:'g11', title:'Plant CRUD operations', priority:'high', status:'todo', phase:'Phase 2'},
+        {id:'g12', title:'Integrate native camera (expo-camera)', priority:'high', status:'todo', phase:'Phase 2'},
+        {id:'g13', title:'Photo ID flow → Anthropic API', priority:'high', status:'todo', phase:'Phase 2'},
+        {id:'g14', title:'Push notifications (expo-notifications)', priority:'medium', status:'todo', phase:'Phase 2'},
+        {id:'g15', title:'OpenWeatherMap live weather integration', priority:'medium', status:'todo', phase:'Phase 2'},
+        // Phase 3 — Launch (by Aug 31)
+        {id:'g16', title:'Full UI polish pass', priority:'medium', status:'todo', phase:'Phase 3'},
+        {id:'g17', title:'Offline support (AsyncStorage)', priority:'medium', status:'todo', phase:'Phase 3'},
+        {id:'g18', title:'Beta testing — 5 users', priority:'high', status:'todo', phase:'Phase 3'},
+        {id:'g19', title:'App Store Connect + Google Play setup', priority:'critical', status:'todo', phase:'Phase 3'},
+        {id:'g20', title:'EAS Build configuration', priority:'high', status:'todo', phase:'Phase 3'},
+        {id:'g21', title:'Screenshots + store listing copy', priority:'high', status:'todo', phase:'Phase 3'},
+        {id:'g22', title:'Submit to both app stores', priority:'critical', status:'todo', phase:'Phase 3'},
+      ]
+    },
+    nwp: {
+      tasks: [
+        {id:'n1', title:'Answer 3 world-building questions (parallel vs time travel, etc.)', priority:'critical', status:'todo', phase:'World Bible'},
+        {id:'n2', title:'Document the inner council characters', priority:'high', status:'todo', phase:'World Bible'},
+        {id:'n3', title:'Describe the regenerative world — sensory, visual, emotional', priority:'high', status:'todo', phase:'World Bible'},
+        {id:'n4', title:'Outline the anti-hero\'s arc (cast out → transformed)', priority:'medium', status:'todo', phase:'Story'},
+        {id:'n5', title:'Begin ghostwriter AI assistant (story bible keeper)', priority:'high', status:'todo', phase:'Tools'},
+        {id:'n6', title:'Write NWP philosophy summary document', priority:'medium', status:'todo', phase:'Philosophy'},
+        {id:'n7', title:'Sketch the city-builder game concept', priority:'low', status:'todo', phase:'Games'},
+      ]
+    }
+  },
+  personal: [
+    {id:'p1', title:'Achieve financial independence', note:'The whole point. Everything else serves this.', status:'active'},
+    {id:'p2', title:'Build morning routine consistency', note:'8:00 target — coffee, shower, Linux & Zina', status:'active'},
+    {id:'p3', title:'Partner returns end of June 🌿', note:'Seeds from Prague arriving. Grow #3 planning.', status:'upcoming'},
+    {id:'p4', title:'Eat fresher — more vegetables, fruits, less processed', note:'Connects to solarpunk values and health.', status:'active'},
+    {id:'p5', title:'Garden: repot strawberry to 6L + worm castings', note:'Urgent — plant is stressed at 65% health', status:'active'},
+  ],
+  xpLog: {}
+};
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('codex_v2');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+function saveState() {
+  try { localStorage.setItem('codex_v2', JSON.stringify(STATE)); } catch(e) {}
+}
+
+let STATE = loadState();
+
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function today() { return new Date(); }
+function todayKey() { return today().toISOString().slice(0,10); }
+
+function projectProgress(pid) {
+  const tasks = STATE.projects[pid].tasks;
+  if (!tasks.length) return 0;
+  const done = tasks.filter(t => t.status === 'done').length;
+  return Math.round((done / tasks.length) * 100);
+}
+
+function projectStats(pid) {
+  const tasks = STATE.projects[pid].tasks;
+  return {
+    done: tasks.filter(t => t.status === 'done').length,
+    todo: tasks.filter(t => t.status !== 'done').length,
+    total: tasks.length
+  };
+}
+
+function nextTasks(pid, n=3) {
+  return STATE.projects[pid].tasks
+    .filter(t => t.status !== 'done')
+    .sort((a,b) => {
+      const order = {critical:0, high:1, medium:2, low:3};
+      return order[a.priority] - order[b.priority];
+    })
+    .slice(0, n);
+}
+
+function todayXP() {
+  const key = todayKey();
+  return STATE.xpLog[key] || 0;
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+
+let currentPage = 'home';
+const pageIds = ['home','projects','biz','garden','vision','ai'];
+
+function goPage(id) {
+  pageIds.forEach(p => {
+    document.getElementById('page-'+p)?.classList.remove('active');
+    document.getElementById('nav-'+p)?.classList.remove('active');
+  });
+  document.getElementById('page-'+id)?.classList.add('active');
+  document.getElementById('nav-'+id)?.classList.add('active');
+  currentPage = id;
+  renderPage(id);
+}
+
+function renderPage(id) {
+  if (id === 'home') renderHome();
+  else if (id === 'projects') renderProjects();
+  else if (id === 'biz') renderProject('biz');
+  else if (id === 'garden') renderProject('garden');
+  else if (id === 'vision') renderVision();
+  else if (id === 'ai') renderAI();
+}
+
+// ══════════════════════════════════════════════
+// HEADER
+// ══════════════════════════════════════════════
+
+function renderHeader() {
+  const now = today();
+  document.getElementById('hdr-date').textContent =
+    `${DAYS[now.getDay()].slice(0,3)} ${now.getDate()} ${MONTHS[now.getMonth()]}`;
+  document.getElementById('xp-pill').textContent = `${todayXP()} XP today`;
+}
+
+// ══════════════════════════════════════════════
+// HOME / DASHBOARD
+// ══════════════════════════════════════════════
+
+function renderHome() {
+  renderHeader();
+  renderQuests();
+  renderDayShape();
+  renderOverallProgress();
+
+  // Stats
+  const now = today();
+  const h = now.getHours();
+  document.getElementById('s-sessions').textContent = getSessionCount();
+  document.getElementById('s-free').textContent = getFreeHours() + 'h';
+  const done = STATE.quests.filter(q => q.done && q.doneDate === todayKey()).length;
+  document.getElementById('s-quests').textContent = `${done}/${STATE.quests.length}`;
+}
+
+function getSessionCount() {
+  const dow = today().getDay(); // 0=Sun
+  // Rough coaching schedule from calendar
+  const sched = {1:[2], 2:[2,2], 3:[1,2], 4:[1,1,1,1,2], 5:[3,1,1], 6:[1], 0:[]};
+  return (sched[dow] || []).length || '—';
+}
+
+function getFreeHours() {
+  const dow = today().getDay();
+  const busy = {0:0, 1:3, 2:4, 3:3, 4:6, 5:4, 6:1};
+  return Math.max(0, 8 - (busy[dow] || 3));
+}
+
+function renderQuests() {
+  const el = document.getElementById('quest-list');
+  el.innerHTML = '';
+  STATE.quests.forEach(q => {
+    const isDone = q.done && q.doneDate === todayKey();
+    const card = document.createElement('div');
+    card.className = `quest-card ${q.priority} ${isDone ? 'done' : ''}`;
+    card.innerHTML = `
+      <div class="q-row">
+        <div class="q-check">${isDone ? '✓' : ''}</div>
+        <div class="q-body">
+          <div class="q-title">${q.title}</div>
+          <div class="q-note">${q.note}</div>
+          <div class="q-foot">
+            <span class="chip ${q.priority}">${q.tag}</span>
+            <span class="q-xp">+${q.xp} XP</span>
+          </div>
+        </div>
+      </div>`;
+    card.addEventListener('click', () => toggleQuest(q.id));
+    el.appendChild(card);
+  });
+}
+
+function toggleQuest(id) {
+  const q = STATE.quests.find(x => x.id === id);
+  if (!q) return;
+  const wasDown = q.done && q.doneDate === todayKey();
+  q.done = !wasDown;
+  q.doneDate = !wasDown ? todayKey() : null;
+
+  // XP
+  const key = todayKey();
+  if (!STATE.xpLog[key]) STATE.xpLog[key] = 0;
+  STATE.xpLog[key] += !wasDown ? q.xp : -q.xp;
+  if (STATE.xpLog[key] < 0) STATE.xpLog[key] = 0;
+
+  saveState();
+  renderHome();
+}
+
+const SCHEDULE = {
+  // day: [{time, label, type}]
+  1: [{t:'08:00',l:'🌿 Morning — Coffee · Shower · Linux & Zina',tp:'routine'},{t:'10:00',l:'🔒 Jan — English Coaching',tp:'session'},{t:'11:00',l:'⚡ Free work block (2.5h)',tp:'free'},{t:'13:30',l:'🥗 Lunch',tp:'routine'},{t:'18:00',l:'🔒 Manghanita + Claudia',tp:'session'}],
+  2: [{t:'08:00',l:'🌿 Morning',tp:'routine'},{t:'09:30',l:'⚡ Free work block (4h)',tp:'free'},{t:'13:30',l:'🥗 Lunch',tp:'routine'},{t:'16:00',l:'🔒 Dr. Cleopatra',tp:'session'},{t:'18:30',l:'🔒 Apollo/Luxor/Jair group',tp:'session'}],
+  3: [{t:'08:00',l:'🌿 Morning',tp:'routine'},{t:'09:30',l:'⚡ Free work block (2h)',tp:'free'},{t:'13:30',l:'🥗 Lunch',tp:'routine'},{t:'14:00',l:'🔒 Jan — English',tp:'session'},{t:'16:00',l:'🔒 Allison + Barrie + Manghanita + Claudia',tp:'session'}],
+  4: [{t:'08:00',l:'🌿 Morning',tp:'routine'},{t:'09:30',l:'⚡ Free work block (3h)',tp:'free'},{t:'13:30',l:'🥗 Lunch',tp:'routine'},{t:'16:00',l:'🔒 Mariana+Tatiana · Jaïr · Sultana · Dr. Cleopatra',tp:'session'}],
+  5: [{t:'08:00',l:'🌿 Morning',tp:'routine'},{t:'09:30',l:'⚡ Free work block (4h)',tp:'free'},{t:'13:30',l:'🥗 Lunch',tp:'routine'},{t:'20:30',l:'🌙 Dinner',tp:'routine'}],
+  6: [{t:'08:00',l:'🌿 Morning',tp:'routine'},{t:'09:30',l:'⚡ Free morning (4h)',tp:'free'},{t:'13:30',l:'🥗 Lunch',tp:'routine'},{t:'20:30',l:'🌙 Dinner',tp:'routine'}],
+  0: [{t:'08:00',l:'🌿 Morning',tp:'routine'},{t:'09:30',l:'⚡ Free morning (5h)',tp:'free'},{t:'13:30',l:'🥗 Lunch',tp:'routine'},{t:'20:30',l:'🌙 Dinner',tp:'routine'}],
+};
+
+function renderDayShape() {
+  const el = document.getElementById('day-shape');
+  el.innerHTML = '';
+  const dow = today().getDay();
+  const slots = SCHEDULE[dow] || [];
+  slots.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'day-block';
+    div.innerHTML = `<div class="day-time">${s.t}</div><div class="day-bar ${s.tp}">${s.l}</div>`;
+    el.appendChild(div);
+  });
+}
+
+function renderOverallProgress() {
+  const el = document.getElementById('overall-progress');
+  el.innerHTML = '';
+  const projs = [
+    {id:'biz', label:'Coaching Business', color:'var(--gold2)'},
+    {id:'garden', label:'Garden App', color:'var(--leaf)'},
+    {id:'nwp', label:'New World Project', color:'#6ab4c0'},
+  ];
+  projs.forEach(p => {
+    const pct = projectProgress(p.id);
+    const s = projectStats(p.id);
+    const card = document.createElement('div');
+    card.className = 'card-sm';
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+        <span style="font-size:12px">${p.label}</span>
+        <span style="font-size:11px;font-family:monospace;color:var(--muted)">${s.done}/${s.total}</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:${p.color}"></div></div>`;
+    el.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════════════
+// PROJECTS HUB
+// ══════════════════════════════════════════════
+
+function renderProjects() {
+  const el = document.getElementById('proj-hub');
+  el.innerHTML = '';
+  const defs = [
+    {id:'biz', cls:'biz', label:'Coaching Business', badge:'urgent', badgeTxt:'Revenue Priority',
+     desc:'Language coaching with 10+ active students. Goal: consistent monthly income + clear offer.',
+     page:'biz'},
+    {id:'garden', cls:'garden', label:'The Garden App', badge:'active', badgeTxt:'12 weeks to launch',
+     desc:'React Native plant care app. AI identification, climate-aware advice, Huelva-optimised. Aug 31 deadline.',
+     page:'garden'},
+    {id:'nwp', cls:'nwp', label:'New World Project', badge:'future', badgeTxt:'Creative',
+     desc:'Philosophical living document + sci-fi book + city-builder game concept. Regenerative civilisation.',
+     page:'vision'},
+  ];
+  defs.forEach(d => {
+    const pct = projectProgress(d.id);
+    const s = projectStats(d.id);
+    const next = nextTasks(d.id, 1)[0];
+    const card = document.createElement('div');
+    card.className = `proj-card ${d.cls}`;
+    card.innerHTML = `
+      <div class="proj-header">
+        <div class="proj-title">${d.label}</div>
+        <div class="proj-badge ${d.badge}">${d.badgeTxt}</div>
+      </div>
+      <div class="proj-desc">${d.desc}</div>
+      <div class="prog-wrap">
+        <div class="prog-label"><span>Progress</span><span>${s.done}/${s.total} tasks · ${pct}%</span></div>
+        <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+      </div>
+      ${next ? `<div class="proj-next">→ <strong>Next:</strong> ${next.title}</div>` : ''}`;
+    card.addEventListener('click', () => goPage(d.page));
+    el.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════════════
+// KANBAN
+// ══════════════════════════════════════════════
+
+const COLS = [
+  {id:'todo', label:'To Do'},
+  {id:'doing', label:'Doing'},
+  {id:'review', label:'Review'},
+  {id:'done', label:'Done'},
+];
+
+function renderKanban(pid, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  const tasks = STATE.projects[pid].tasks;
+  COLS.forEach(col => {
+    const colTasks = tasks.filter(t => t.status === col.id);
+    const colEl = document.createElement('div');
+    colEl.className = 'kanban-col';
+    colEl.innerHTML = `
+      <div class="kanban-col-title">
+        ${col.label} <span class="col-count">${colTasks.length}</span>
+      </div>`;
+    if (colTasks.length === 0) {
+      const hint = document.createElement('div');
+      hint.className = 'kanban-hint';
+      hint.textContent = col.id === 'done' ? 'Nothing here yet' : '—';
+      colEl.appendChild(hint);
+    }
+    colTasks.forEach(task => {
+      const card = document.createElement('div');
+      card.className = `kanban-card ${task.priority} ${task.status === 'done' ? 'done' : ''}`;
+      card.innerHTML = `
+        <div class="k-title">${task.title}</div>
+        <div class="k-meta">
+          <span class="chip ${task.priority}">${task.priority}</span>
+          <span class="k-phase">${task.phase || ''}</span>
+        </div>`;
+      card.addEventListener('click', () => cycleStatus(pid, task.id));
+      colEl.appendChild(card);
+    });
+    container.appendChild(colEl);
+  });
+}
+
+function cycleStatus(pid, taskId) {
+  const task = STATE.projects[pid].tasks.find(t => t.id === taskId);
+  if (!task) return;
+  const order = ['todo','doing','review','done'];
+  const idx = order.indexOf(task.status);
+  task.status = order[(idx + 1) % order.length];
+  saveState();
+  renderProject(pid);
+}
+
+// ══════════════════════════════════════════════
+// PROJECT PAGES
+// ══════════════════════════════════════════════
+
+function renderProject(pid) {
+  const s = projectStats(pid);
+  const pct = projectProgress(pid);
+
+  document.getElementById(`${pid}-prog-fill`).style.width = pct + '%';
+  document.getElementById(`${pid}-done`).textContent = s.done;
+  document.getElementById(`${pid}-todo`).textContent = s.todo;
+
+  // Kanban
+  renderKanban(pid, `${pid}-kanban`);
+
+  // Next actions
+  const nextEl = document.getElementById(`${pid}-next`);
+  if (nextEl) {
+    nextEl.innerHTML = '';
+    nextTasks(pid, 5).forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'card-sm';
+      card.style.cssText = 'display:flex;align-items:flex-start;gap:10px;cursor:pointer';
+      card.innerHTML = `
+        <div>
+          <div style="font-size:12px;margin-bottom:3px">${t.title}</div>
+          <div style="display:flex;gap:6px">
+            <span class="chip ${t.priority}">${t.priority}</span>
+            <span style="font-size:9px;color:var(--faint);font-family:monospace">${t.phase||''}</span>
+          </div>
+        </div>`;
+      card.addEventListener('click', () => { cycleStatus(pid, t.id); });
+      nextEl.appendChild(card);
+    });
+    if (!nextTasks(pid, 1).length) {
+      nextEl.innerHTML = '<div class="card-sm" style="text-align:center;font-style:italic;color:var(--muted)">All tasks complete! 🎉</div>';
+    }
+  }
+
+  // Garden Gantt
+  if (pid === 'garden') renderGantt();
+}
+
+// ══════════════════════════════════════════════
+// GANTT
+// ══════════════════════════════════════════════
+
+function renderGantt() {
+  const el = document.getElementById('garden-gantt');
+  if (!el) return;
+  el.innerHTML = '';
+
+  const W = 620, H = 180;
+  const startDate = new Date('2026-06-09');
+  const totalWeeks = 12;
+  const colW = (W - 80) / totalWeeks;
+  const rowH = 28;
+
+  const phases = [
+    {label:'Phase 1 — Foundation', color:'#4db86a', start:0, end:3, due:'Jun 29'},
+    {label:'Phase 2 — Build', color:'#e8a820', start:3, end:7, due:'Jul 27'},
+    {label:'Phase 3 — Launch', color:'#c04030', start:7, end:12, due:'Aug 31'},
+  ];
+
+  const milestones = [
+    {label:'Node + Expo setup', week:0.5, phase:1},
+    {label:'App on phone', week:1.5, phase:1},
+    {label:'RN basics done', week:2.5, phase:1},
+    {label:'Supabase live', week:3.5, phase:2},
+    {label:'Camera + AI ID', week:5, phase:2},
+    {label:'Backend complete', week:6.5, phase:2},
+    {label:'Beta test', week:8.5, phase:3},
+    {label:'App Store submit', week:11.5, phase:3},
+  ];
+
+  const nowWeek = Math.min(totalWeeks, (Date.now() - startDate.getTime()) / (7*24*3600*1000));
+
+  let svg = `<svg class="gantt-svg" viewBox="0 0 ${W} ${H+40}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Background
+  svg += `<rect width="${W}" height="${H+40}" fill="#f2ede0" rx="10"/>`;
+
+  // Week columns
+  for (let w = 0; w <= totalWeeks; w++) {
+    const x = 80 + w * colW;
+    svg += `<line x1="${x}" y1="20" x2="${x}" y2="${H+10}" stroke="#e0dbd0" stroke-width="${w%4===0?1.5:0.5}"/>`;
+    if (w < totalWeeks && w % 2 === 0) {
+      svg += `<text x="${x + colW}" y="14" text-anchor="middle" font-size="8" fill="#a0b89a" font-family="monospace">W${w+1}</text>`;
+    }
+  }
+
+  // Phase bars
+  phases.forEach((p, i) => {
+    const x = 80 + p.start * colW;
+    const w = (p.end - p.start) * colW;
+    const y = 22 + i * (rowH + 4);
+    svg += `<rect x="${x}" y="${y}" width="${w}" height="${rowH-2}" rx="5" fill="${p.color}" opacity=".2"/>`;
+    svg += `<rect x="${x}" y="${y}" width="3" height="${rowH-2}" rx="2" fill="${p.color}"/>`;
+    svg += `<text x="${x+8}" y="${y+rowH/2+4}" font-size="10" fill="${p.color}" font-family="Georgia,serif" font-style="italic">${p.label}</text>`;
+    svg += `<text x="${80 + p.end*colW - 4}" y="${y+rowH/2+4}" text-anchor="end" font-size="9" fill="${p.color}" font-family="monospace" opacity=".8">${p.due}</text>`;
+  });
+
+  // Milestones
+  milestones.forEach(m => {
+    const x = 80 + m.week * colW;
+    const y = 22 + (m.phase-1) * (rowH + 4) + rowH/2;
+    svg += `<circle cx="${x}" cy="${y}" r="4" fill="#1c3d28" opacity=".7"/>`;
+  });
+
+  // Now line
+  const nowX = 80 + nowWeek * colW;
+  svg += `<line x1="${nowX}" y1="18" x2="${nowX}" y2="${H+8}" stroke="#c04030" stroke-width="1.5" stroke-dasharray="3,2" opacity=".7"/>`;
+  svg += `<text x="${nowX}" y="${H+22}" text-anchor="middle" font-size="9" fill="#c04030" font-family="monospace">NOW</text>`;
+
+  // Bottom week labels
+  for (let w = 0; w < totalWeeks; w+=2) {
+    const x = 80 + w * colW;
+    const d = new Date(startDate.getTime() + w * 7 * 24 * 3600 * 1000);
+    svg += `<text x="${x + colW}" y="${H+34}" text-anchor="middle" font-size="8" fill="#a0b89a" font-family="monospace">${d.getDate()}/${d.getMonth()+1}</text>`;
+  }
+
+  // Left labels
+  const phaseLabels = ['Ph.1','Ph.2','Ph.3'];
+  phaseLabels.forEach((l, i) => {
+    const y = 22 + i * (rowH+4) + rowH/2 + 4;
+    svg += `<text x="74" y="${y}" text-anchor="end" font-size="9" fill="#5a7055" font-family="monospace">${l}</text>`;
+  });
+
+  svg += '</svg>';
+  el.innerHTML = svg;
+}
+
+// ══════════════════════════════════════════════
+// VISION PAGE (NWP + Personal)
+// ══════════════════════════════════════════════
+
+function renderVision() {
+  renderProject('nwp');
+  const el = document.getElementById('personal-list');
+  if (!el) return;
+  el.innerHTML = '';
+  STATE.personal.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'card-sm';
+    const statusColor = p.status === 'active' ? 'var(--leaf)' : p.status === 'upcoming' ? 'var(--gold2)' : 'var(--muted)';
+    card.innerHTML = `
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <div style="width:8px;height:8px;border-radius:50%;background:${statusColor};margin-top:4px;flex-shrink:0"></div>
+        <div>
+          <div style="font-size:12px;margin-bottom:2px">${p.title}</div>
+          <div style="font-size:10px;color:var(--muted);font-style:italic">${p.note}</div>
+        </div>
+      </div>`;
+    el.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════════════
+// AI PAGE
+// ══════════════════════════════════════════════
+
+function buildContext(extra) {
+  const now = today();
+  const dow = DAYS[now.getDay()];
+  const bizS = projectStats('biz');
+  const gardenS = projectStats('garden');
+  const nwpS = projectStats('nwp');
+  const bizNext = nextTasks('biz',2).map(t=>t.title).join('; ');
+  const gardenNext = nextTasks('garden',2).map(t=>t.title).join('; ');
+  const questsDone = STATE.quests.filter(q=>q.done&&q.doneDate===todayKey()).map(q=>q.title).join(', ') || 'none yet';
+
+  return `CODEX context — ${dow} ${now.getDate()} ${MONTHS[now.getMonth()]} 2026
+
+WHO: Cédric, coach + entrepreneur, Isla Cristina, Spain. Partner back end of June.
+GOAL: Financial independence as fast as possible.
+
+TODAY:
+- Quests completed: ${questsDone}
+- XP earned: ${todayXP()}
+
+PROJECTS:
+1. COACHING (URGENT — revenue): ${bizS.done}/${bizS.total} tasks done. Next: ${bizNext}
+2. GARDEN APP (deadline Aug 31): ${gardenS.done}/${gardenS.total} tasks done. Next: ${gardenNext}
+3. NEW WORLD PROJECT: ${nwpS.done}/${nwpS.total} tasks done. Next world-building questions unanswered.
+
+SCHEDULE TODAY: coaching sessions in the evening (see calendar). Free work block available in the morning.
+
+CONTEXT: Cédric has ADHD-like tendencies — needs clear next actions, not big picture. Be direct, no padding. Push him toward the most urgent thing.
+${extra ? '\nQUESTION: ' + extra : ''}`;
+}
+
+function renderAI() {
+  const ctx = buildContext();
+  document.getElementById('ai-ctx-text').textContent = ctx;
+}
+
+const PROMPTS = {
+  focus: 'Given my project status and today being ' + DAYS[today().getDay()] + ', what is the single most important thing I should do in the next 2 hours? Be specific, not general.',
+  track: 'Looking at my project progress, am I on track to hit my goals? Where am I most at risk? What do I need to accelerate?',
+  garden: 'Walk me through the exact next steps for Phase 1 of the Garden App. I am non-technical and learning React Native. Make it very concrete.',
+  biz: 'Help me define my coaching offer right now. Ask me 3 questions to help me write it, then help me craft the 1-sentence + 3-bullet version.',
+};
+
+function openClaude(type) {
+  if (type === 'custom') {
+    const div = document.getElementById('custom-input');
+    div.style.display = div.style.display === 'none' ? 'block' : 'none';
+    return;
+  }
+  const question = PROMPTS[type] || '';
+  const full = buildContext(question);
+  copyAndOpen(full);
+}
+
+function sendCustom() {
+  const q = document.getElementById('custom-q').value.trim();
+  const full = buildContext(q);
+  copyAndOpen(full);
+}
+
+function copyAndOpen(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const flash = document.getElementById('copy-flash');
+    flash.style.display = 'block';
+    setTimeout(() => { flash.style.display = 'none'; }, 3000);
+  }).catch(() => {});
+  window.open('https://claude.ai', '_blank');
+}
+
+// ══════════════════════════════════════════════
+// TAB SWITCHING (inside project pages)
+// ══════════════════════════════════════════════
+
+function switchTab(pid, tab) {
+  const page = document.getElementById('page-' + pid) || document.getElementById('page-vision');
+  const tabs = page.querySelectorAll('.tab-content');
+  const btns = page.querySelectorAll('.tab-btn');
+  tabs.forEach(t => t.classList.remove('active'));
+  btns.forEach(b => b.classList.remove('active'));
+  const target = page.querySelector(`#${pid}-tab-${tab}`);
+  if (target) target.classList.add('active');
+  // Find matching button (by onclick content)
+  btns.forEach(b => {
+    if (b.getAttribute('onclick')?.includes(`'${tab}'`)) b.classList.add('active');
+  });
+}
+
+// ══════════════════════════════════════════════
+// ADD TASK MODAL
+// ══════════════════════════════════════════════
+
+let addingToProject = null;
+
+function openAddTask(pid) {
+  addingToProject = pid;
+  document.getElementById('new-task-title').value = '';
+  document.getElementById('new-task-phase').value = '';
+  document.getElementById('add-modal').classList.add('open');
+  setTimeout(() => document.getElementById('new-task-title').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('add-modal').classList.remove('open');
+}
+
+function confirmAddTask() {
+  const title = document.getElementById('new-task-title').value.trim();
+  if (!title) return;
+  const priority = document.getElementById('new-task-priority').value;
+  const status = document.getElementById('new-task-status').value;
+  const phase = document.getElementById('new-task-phase').value.trim() || null;
+  const id = 'u_' + Date.now();
+  STATE.projects[addingToProject].tasks.push({id, title, priority, status, phase});
+  saveState();
+  closeModal();
+  renderProject(addingToProject);
+}
+
+// Close modal on backdrop click
+document.getElementById('add-modal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+
+renderHeader();
+renderHome();
+
+// Update header every minute
+setInterval(renderHeader, 60000);
+
+// PWA manifest injection
+const manifest = {
+  name: 'CODEX — Personal OS',
+  short_name: 'CODEX',
+  description: 'Personal project management and daily mission system',
+  start_url: '.',
+  display: 'standalone',
+  background_color: '#f2ede0',
+  theme_color: '#1c3d28',
+  icons: [{
+    src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="%231c3d28"/><text y=".9em" font-size="70" x="15">🌿</text></svg>',
+    sizes: '192x192', type: 'image/svg+xml'
+  }]
+};
+const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+const link = document.createElement('link');
+link.rel = 'manifest';
+link.href = URL.createObjectURL(blob);
+document.head.appendChild(link);
+</script>
+</body>
+</html>
