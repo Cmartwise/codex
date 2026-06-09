@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -717,15 +718,34 @@ function toggleQuest(id) {
   renderHome();
 }
 
+// Day-specific chores (Mon–Sat)
+const CHORES = {
+  1:'🧹 Vacuum living room + bedrooms',
+  2:'🛁 Clean bathroom',
+  3:'👕 Laundry day',
+  4:'🪟 Windows + dusting',
+  5:'🍽 Kitchen deep clean',
+  6:'🌿 Garden + azotea check',
+  0:'🗂 Rest day — no chores',
+};
+
+// Fixed daily structure — coaching sessions NOT hardcoded (check Google Calendar)
+function buildDay(dow) {
+  return [
+    {t:'08:00', l:'🌿 Morning — Coffee · Shower · Walk Linux & Zina', tp:'routine'},
+    {t:'08:45', l:'🍳 Breakfast', tp:'routine'},
+    {t:'09:30', l:'⚡ Focus block (check Google Calendar for sessions)', tp:'free'},
+    {t:'11:30', l: CHORES[dow] || '🏠 House chore (30 min)', tp:'routine'},
+    {t:'13:30', l:'🥗 Lunch', tp:'routine'},
+    {t:'14:00', l:'⚡ Afternoon — sessions / deep work (see calendar)', tp:'free'},
+    {t:'19:00', l:'🐕 Evening walk — Linux & Zina', tp:'routine'},
+    {t:'20:30', l:'🌙 Dinner', tp:'routine'},
+  ];
+}
+
 const SCHEDULE = {
-  // day: [{time, label, type}]
-  1: [{t:'08:00',l:'🌿 Morning — Coffee · Shower · Linux & Zina',tp:'routine'},{t:'10:00',l:'🔒 Jan — English Coaching',tp:'session'},{t:'11:00',l:'⚡ Free work block (2.5h)',tp:'free'},{t:'13:30',l:'🥗 Lunch',tp:'routine'},{t:'18:00',l:'🔒 Manghanita + Claudia',tp:'session'}],
-  2: [{t:'08:00',l:'🌿 Morning',tp:'routine'},{t:'09:30',l:'⚡ Free work block (4h)',tp:'free'},{t:'13:30',l:'🥗 Lunch',tp:'routine'},{t:'16:00',l:'🔒 Dr. Cleopatra',tp:'session'},{t:'18:30',l:'🔒 Apollo/Luxor/Jair group',tp:'session'}],
-  3: [{t:'08:00',l:'🌿 Morning',tp:'routine'},{t:'09:30',l:'⚡ Free work block (2h)',tp:'free'},{t:'13:30',l:'🥗 Lunch',tp:'routine'},{t:'14:00',l:'🔒 Jan — English',tp:'session'},{t:'16:00',l:'🔒 Allison + Barrie + Manghanita + Claudia',tp:'session'}],
-  4: [{t:'08:00',l:'🌿 Morning',tp:'routine'},{t:'09:30',l:'⚡ Free work block (3h)',tp:'free'},{t:'13:30',l:'🥗 Lunch',tp:'routine'},{t:'16:00',l:'🔒 Mariana+Tatiana · Jaïr · Sultana · Dr. Cleopatra',tp:'session'}],
-  5: [{t:'08:00',l:'🌿 Morning',tp:'routine'},{t:'09:30',l:'⚡ Free work block (4h)',tp:'free'},{t:'13:30',l:'🥗 Lunch',tp:'routine'},{t:'20:30',l:'🌙 Dinner',tp:'routine'}],
-  6: [{t:'08:00',l:'🌿 Morning',tp:'routine'},{t:'09:30',l:'⚡ Free morning (4h)',tp:'free'},{t:'13:30',l:'🥗 Lunch',tp:'routine'},{t:'20:30',l:'🌙 Dinner',tp:'routine'}],
-  0: [{t:'08:00',l:'🌿 Morning',tp:'routine'},{t:'09:30',l:'⚡ Free morning (5h)',tp:'free'},{t:'13:30',l:'🥗 Lunch',tp:'routine'},{t:'20:30',l:'🌙 Dinner',tp:'routine'}],
+  0:buildDay(0), 1:buildDay(1), 2:buildDay(2), 3:buildDay(3),
+  4:buildDay(4), 5:buildDay(5), 6:buildDay(6),
 };
 
 function renderDayShape() {
