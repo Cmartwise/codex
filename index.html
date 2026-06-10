@@ -418,10 +418,10 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
     <div class="stat-row" id="home-stats">
       <div class="stat-box"><span class="stat-val" id="s-sessions">—</span><span class="stat-lbl">Sessions</span></div>
       <div class="stat-box"><span class="stat-val" id="s-free">—</span><span class="stat-lbl">Free hrs</span></div>
-      <div class="stat-box"><span class="stat-val" id="s-quests">0/3</span><span class="stat-lbl">Quests</span></div>
+      <div class="stat-box"><span class="stat-val" id="s-quests">0</span><span class="stat-lbl">Focus</span></div>
     </div>
 
-    <div class="sec">Daily Quests</div>
+    <div class="sec">Today's Focus</div>
     <div id="quest-list"></div>
 
     <div class="sec">Day Shape</div>
@@ -492,7 +492,6 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
     <div class="copy-flash" id="copy-flash">✓ Context copied to clipboard — paste it into Claude!</div>
   </div>
 
-</div>
 
 <!-- ══ PLAN PAGE ══ -->
 <div id="page-plan" class="page">
@@ -567,6 +566,7 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
   </div>
 
   <div style="height:12px"></div>
+</div>
 </div>
 
 <nav class="bottom-nav">
@@ -659,6 +659,15 @@ const DEFAULT_DATA = {
         {id:'g22', title:'Submit to both app stores', priority:'critical', status:'todo', phase:'Phase 3'},
       ]
    },
+   {id:'personal', title:'Personal & Life', icon:'🌱', color:'#8ab890', description:'Daily routines, health, home, and personal goals', tasks: [
+        {id:'pl1', title:'Morning routine: coffee · shower · dog walks × 3', priority:'medium', status:'todo', phase:'Daily'},
+        {id:'pl2', title:'Partner returns end of June — prepare welcome', priority:'medium', status:'todo', phase:'Personal'},
+        {id:'pl3', title:'Repot strawberry to 6L container + worm castings', priority:'high', status:'todo', phase:'Home'},
+        {id:'pl4', title:'Eat fresher — more vegetables, less processed', priority:'low', status:'todo', phase:'Health'},
+        {id:'pl5', title:'Build consistent sleep schedule (up by 08:00)', priority:'medium', status:'todo', phase:'Health'},
+        {id:'pl6', title:'Vacuum + bathroom clean (Monday & Tuesday)', priority:'low', status:'todo', phase:'Home'},
+      ]
+   },
    {id:'nwp', title:'New World Project', icon:'🌍', color:'#6ab4c0', description:'Long-term creative and philosophical world-building', tasks: [
         {id:'n1', title:'Answer 3 world-building questions (parallel vs time travel, etc.)', priority:'critical', status:'todo', phase:'World Bible'},
         {id:'n2', title:'Document the inner council characters', priority:'high', status:'todo', phase:'World Bible'},
@@ -718,7 +727,19 @@ function migrateState(s) {
     ];
   }
   if (!s.profile) s.profile = JSON.parse(JSON.stringify(DEFAULT_DATA.profile));
+ s.profile = JSON.parse(JSON.stringify(DEFAULT_DATA.profile));
   if (!s.lifeTasks) s.lifeTasks = [];
+  // Add personal project if missing
+  if (!s.projects.find(p => p.id === 'personal')) {
+    s.projects.push({id:'personal', title:'Personal & Life', icon:'🌱', color:'#8ab890', description:'Daily routines, health, home, and personal goals', tasks: [
+      {id:'pl1', title:'Morning routine: coffee · shower · dog walks × 3', priority:'medium', status:'todo', phase:'Daily'},
+      {id:'pl2', title:'Partner returns end of June — prepare welcome', priority:'medium', status:'todo', phase:'Personal'},
+      {id:'pl3', title:'Repot strawberry to 6L container + worm castings', priority:'high', status:'todo', phase:'Home'},
+      {id:'pl4', title:'Eat fresher — more vegetables, less processed', priority:'low', status:'todo', phase:'Health'},
+      {id:'pl5', title:'Build consistent sleep schedule (up by 08:00)', priority:'medium', status:'todo', phase:'Health'},
+      {id:'pl6', title:'Vacuum + bathroom clean (Monday & Tuesday)', priority:'low', status:'todo', phase:'Home'},
+    ]});
+  }
   return s;
 }
 
@@ -871,80 +892,130 @@ async function fetchAndRenderCalendar() {
 
 function renderDayShapeWithEvents(sessions) {
   const el = document.getElementById('day-shape');
-  // Use live calendar as source of truth — no hardcoded blocks to avoid duplication
-  // If calendar is empty, fall back to static day shape (renderDayShape handles that)
-  const all = sessions.length > 0
-    ? sessions.map(s => ({
-        t: s.start,
-        l: s.title + (s.end ? ' · ' + s.start + '–' + s.end : ''),
-        tp: s.type || 'session',
-      })).sort((a, b) => a.t.localeCompare(b.t))
-    : (() => { renderDayShape(); return null; })();
-  if (!all) return;
+  if (!sessions.length) { renderDayShape(); return; }
+
+  const pf = STATE.profile || {};
+  const peakS = timeToMins(pf.peakStart || '09:00');
+  const peakE = timeToMins(pf.peakEnd   || '12:00');
+  const dipS  = timeToMins(pf.dipStart  || '14:00');
+  const dipE  = timeToMins(pf.dipEnd    || '16:30');
+
+  function getAdviceForGap(startM) {
+    if (startM >= peakS - 60 && startM < peakS) return {l:'🌅 Rising energy — review notes, set intentions', tp:'free'};
+    if (startM >= peakS && startM < peakE)       return {l:'⚡ Peak zone — deep work, most important task', tp:'session'};
+    if (startM >= peakE && startM < dipS)         return {l:'☕ Post-peak — light tasks, lunch, short walk', tp:'routine'};
+    if (startM >= dipS && startM < dipE)          return {l:'😴 Dip zone — admin, email, easy tasks only', tp:'routine'};
+    if (startM >= dipE && startM < dipE + 90)     return {l:'🔄 Recovery — coaching calls, creative light work', tp:'free'};
+    if (startM >= 19 * 60)                        return {l:'🌙 Evening — wind down, plan tomorrow', tp:'routine'};
+    return {l:'⏳ Free block', tp:'free'};
+  }
+
+  function minsToTime(m) {
+    return String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
+  }
+
+  const sorted = [...sessions].sort((a, b) => a.start.localeCompare(b.start));
+  const blocks = [];
+  let prevEnd = 7 * 60 + 30; // start scanning from 07:30
+
+  sorted.forEach(s => {
+    const startM = timeToMins(s.start);
+    const endM   = s.end ? timeToMins(s.end) : startM + 60;
+    // Gap before this event (>= 30 min)
+    if (startM - prevEnd >= 30 && prevEnd >= 7 * 60) {
+      const adv = getAdviceForGap(prevEnd);
+      blocks.push({t: minsToTime(prevEnd), l: adv.l, tp: adv.tp, isAdvice: true});
+    }
+    blocks.push({t: s.start, l: s.title + (s.end ? ' · ' + s.start + '–' + s.end : ''), tp: s.type || 'session', isAdvice: false});
+    prevEnd = endM;
+  });
+
+  // Gap after last event (until 21:00)
+  if (prevEnd < 21 * 60) {
+    const adv = getAdviceForGap(prevEnd);
+    blocks.push({t: minsToTime(prevEnd), l: adv.l, tp: adv.tp, isAdvice: true});
+  }
+
   el.innerHTML = '';
-  all.forEach(s => {
+  blocks.forEach(s => {
     const div = document.createElement('div');
     div.className = 'day-block';
-    div.innerHTML = `<div class="heat-strip" style="background:${getHeatColor(s.t)}"></div><div class="day-time">${s.t}</div><div class="day-bar ${s.tp}">${s.l}</div>`;
+    const style = s.isAdvice ? ' style="opacity:0.75;font-style:italic"' : '';
+    div.innerHTML = `<div class="heat-strip" style="background:${getHeatColor(s.t)}"></div><div class="day-time">${s.t}</div><div class="day-bar ${s.tp}"${style}>${s.l}</div>`;
     el.appendChild(div);
   });
 }
 
 function renderHome() {
   renderHeader();
-  renderQuests();
+  renderTodayFocus();
   renderDayShape();
   renderOverallProgress();
 
   // Stats — live calendar will overwrite these once loaded
   document.getElementById('s-sessions').textContent = '…';
   document.getElementById('s-free').textContent = '…';
-  const done = STATE.quests.filter(q => q.done && q.doneDate === todayKey()).length;
-  document.getElementById('s-quests').textContent = `${done}/${STATE.quests.length}`;
+  const mits = getMITs();
+  const mitsDone = STATE.projects.reduce((acc, proj) =>
+    acc + proj.tasks.filter(t => {
+      const mitIds = mits.map(m => m.id);
+      return t.status === 'done' && mitIds.includes(t.id);
+    }).length, 0);
+  document.getElementById('s-quests').textContent = `${mitsDone}/${mits.length}`;
 
   // Fetch live sessions in background (non-blocking)
   fetchAndRenderCalendar();
 }
 
-function renderQuests() {
+function renderTodayFocus() {
   const el = document.getElementById('quest-list');
   el.innerHTML = '';
-  STATE.quests.forEach(q => {
-    const isDone = q.done && q.doneDate === todayKey();
+  const mits = getMITs();
+  if (!mits.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic;padding:8px 0">No pending tasks — add tasks to your projects to see them here.</div>';
+    return;
+  }
+  mits.forEach((t, i) => {
+    const proj = STATE.projects.find(p => p.id === t.domain);
+    const task = proj?.tasks.find(tk => tk.id === t.id);
+    const isDone = task?.status === 'done';
     const card = document.createElement('div');
-    card.className = `quest-card ${q.priority} ${isDone ? 'done' : ''}`;
+    card.className = `quest-card ${t.priority} ${isDone ? 'done' : ''}`;
+    const xpMap = {critical:100, high:75, medium:50, low:25};
     card.innerHTML = `
       <div class="q-row">
         <div class="q-check">${isDone ? '✓' : ''}</div>
         <div class="q-body">
-          <div class="q-title">${q.title}</div>
-          <div class="q-note">${q.note}</div>
+          <div class="q-title">${t.title}</div>
+          <div class="q-note">${proj ? proj.icon + ' ' + proj.title : t.domain}</div>
           <div class="q-foot">
-            <span class="chip ${q.priority}">${q.tag}</span>
-            <span class="q-xp">+${q.xp} XP</span>
+            <span class="chip ${t.priority}">${t.priority}</span>
+            <span class="q-xp">+${xpMap[t.priority]||30} XP</span>
           </div>
         </div>
       </div>`;
-    card.addEventListener('click', () => toggleQuest(q.id));
+    card.addEventListener('click', () => toggleMIT(t.domain, t.id));
     el.appendChild(card);
   });
 }
 
-function toggleQuest(id) {
-  const q = STATE.quests.find(x => x.id === id);
-  if (!q) return;
-  const wasDown = q.done && q.doneDate === todayKey();
-  q.done = !wasDown;
-  q.doneDate = !wasDown ? todayKey() : null;
-
+function toggleMIT(projectId, taskId) {
+  const proj = STATE.projects.find(p => p.id === projectId);
+  if (!proj) return;
+  const task = proj.tasks.find(t => t.id === taskId);
+  if (!task) return;
+  const wasDone = task.status === 'done';
+  task.status = wasDone ? 'todo' : 'done';
   // XP
+  const xpMap = {critical:100, high:75, medium:50, low:25};
+  const xp = xpMap[task.priority] || 30;
   const key = todayKey();
   if (!STATE.xpLog[key]) STATE.xpLog[key] = 0;
-  STATE.xpLog[key] += !wasDown ? q.xp : -q.xp;
-  if (STATE.xpLog[key] < 0) STATE.xpLog[key] = 0;
-
+  if (!wasDone) STATE.xpLog[key] += xp; else STATE.xpLog[key] = Math.max(0, STATE.xpLog[key] - xp);
   saveState();
   renderHome();
+  // Also refresh project view if open
+  if (currentPage === 'projects' && _projCurrent === projectId) renderProjectDetail(projectId);
 }
 
 // Day-specific chores (Mon–Sat)
@@ -1091,7 +1162,7 @@ function renderProjectDetail(pid) {
     </div>`;
   el.appendChild(hdr);
 
-  const hasGantt = proj.gantt !== false && pid === 'garden';
+  const hasGantt = proj.tasks.length > 0; // Timeline available for all projects
 
   // Tabs
   const tabs = document.createElement('div');
@@ -1172,7 +1243,7 @@ function switchProjTab(pid, tab) {
     document.getElementById(`pane-${t}-${pid}`)?.classList.toggle('active', t===tab);
     document.getElementById(`tab-${t}-${pid}`)?.classList.toggle('active', t===tab);
   });
-  if (tab === 'gantt') renderGantt(`gantt-${pid}`);
+  if (tab === 'gantt') renderGantt(`gantt-${pid}`, pid);
 }
 
 function renderProjectForm() {
@@ -1306,16 +1377,23 @@ function renderProject(pid) {
 // GANTT
 // ══════════════════════════════════════════════
 
-function renderGantt(targetId) {
+function renderGantt(targetId, pid) {
   const el = document.getElementById(targetId || 'garden-gantt');
   if (!el) return;
   el.innerHTML = '';
 
-  const W = 620, H = 180;
+  // For non-garden projects: render dynamic phase progress gantt
+  if (pid && pid !== 'garden') {
+    renderPhaseGantt(el, pid);
+    return;
+  }
+
+  // Garden App: hardcoded 12-week timeline
+  const W = 620, H = 160;
   const startDate = new Date('2026-06-09');
   const totalWeeks = 12;
   const colW = (W - 80) / totalWeeks;
-  const rowH = 28;
+  const rowH = 20;
 
   const phases = [
     {label:'Phase 1 — Foundation', color:'#4db86a', start:0, end:3, due:'Jun 29'},
@@ -1336,15 +1414,15 @@ function renderGantt(targetId) {
 
   const nowWeek = Math.min(totalWeeks, (Date.now() - startDate.getTime()) / (7*24*3600*1000));
 
-  let svg = `<svg class="gantt-svg" viewBox="0 0 ${W} ${H+40}" xmlns="http://www.w3.org/2000/svg">`;
+  let svg = `<svg class="gantt-svg" viewBox="0 0 ${W} ${H+36}" xmlns="http://www.w3.org/2000/svg">`;
 
   // Background
-  svg += `<rect width="${W}" height="${H+40}" fill="#f2ede0" rx="10"/>`;
+  svg += `<rect width="${W}" height="${H+36}" fill="#f2ede0" rx="10"/>`;
 
   // Week columns
   for (let w = 0; w <= totalWeeks; w++) {
     const x = 80 + w * colW;
-    svg += `<line x1="${x}" y1="20" x2="${x}" y2="${H+10}" stroke="#e0dbd0" stroke-width="${w%4===0?1.5:0.5}"/>`;
+    svg += `<line x1="${x}" y1="18" x2="${x}" y2="${H+6}" stroke="#e0dbd0" stroke-width="${w%4===0?1.5:0.5}"/>`;
     if (w < totalWeeks && w % 2 === 0) {
       svg += `<text x="${x + colW}" y="14" text-anchor="middle" font-size="8" fill="#a0b89a" font-family="monospace">W${w+1}</text>`;
     }
@@ -1370,14 +1448,14 @@ function renderGantt(targetId) {
 
   // Now line
   const nowX = 80 + nowWeek * colW;
-  svg += `<line x1="${nowX}" y1="18" x2="${nowX}" y2="${H+8}" stroke="#c04030" stroke-width="1.5" stroke-dasharray="3,2" opacity=".7"/>`;
-  svg += `<text x="${nowX}" y="${H+22}" text-anchor="middle" font-size="9" fill="#c04030" font-family="monospace">NOW</text>`;
+  svg += `<line x1="${nowX}" y1="16" x2="${nowX}" y2="${H+4}" stroke="#c04030" stroke-width="1.5" stroke-dasharray="3,2" opacity=".7"/>`;
+  svg += `<text x="${nowX}" y="${H+18}" text-anchor="middle" font-size="9" fill="#c04030" font-family="monospace">NOW</text>`;
 
   // Bottom week labels
   for (let w = 0; w < totalWeeks; w+=2) {
     const x = 80 + w * colW;
     const d = new Date(startDate.getTime() + w * 7 * 24 * 3600 * 1000);
-    svg += `<text x="${x + colW}" y="${H+34}" text-anchor="middle" font-size="8" fill="#a0b89a" font-family="monospace">${d.getDate()}/${d.getMonth()+1}</text>`;
+    svg += `<text x="${x + colW}" y="${H+30}" text-anchor="middle" font-size="8" fill="#a0b89a" font-family="monospace">${d.getDate()}/${d.getMonth()+1}</text>`;
   }
 
   // Left labels
@@ -1385,6 +1463,71 @@ function renderGantt(targetId) {
   phaseLabels.forEach((l, i) => {
     const y = 22 + i * (rowH+4) + rowH/2 + 4;
     svg += `<text x="74" y="${y}" text-anchor="end" font-size="9" fill="#5a7055" font-family="monospace">${l}</text>`;
+  });
+
+  svg += '</svg>';
+  el.innerHTML = svg;
+}
+
+// ══════════════════════════════════════════════
+// PHASE GANTT — dynamic for any project
+// ══════════════════════════════════════════════
+
+function renderPhaseGantt(el, pid) {
+  const proj = getProject(pid);
+  if (!proj) return;
+
+  // Group tasks by phase
+  const phaseMap = {};
+  const phaseOrder = [];
+  proj.tasks.forEach(t => {
+    const ph = t.phase || 'General';
+    if (!phaseMap[ph]) { phaseMap[ph] = {total:0, done:0}; phaseOrder.push(ph); }
+    phaseMap[ph].total++;
+    if (t.status === 'done') phaseMap[ph].done++;
+  });
+
+  if (phaseOrder.length === 0) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--muted);padding:8px;font-style:italic">No phases defined yet. Add a phase to tasks in kanban.</div>';
+    return;
+  }
+
+  const colors = ['#4db86a','#e8a820','#c04030','#6ab4c0','#9b8bc0','#c8881a','#8ab890','#5a8a9a'];
+  const W = 580, rowH = 28, gap = 6;
+  const H = phaseOrder.length * (rowH + gap) + 40;
+  const barW = W - 140;
+
+  let svg = `<svg class="gantt-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<rect width="${W}" height="${H}" fill="#f2ede0" rx="10"/>`;
+
+  // Header
+  svg += `<text x="140" y="18" font-size="9" fill="#a0b89a" font-family="monospace">PROGRESS</text>`;
+  svg += `<text x="${W-8}" y="18" text-anchor="end" font-size="9" fill="#a0b89a" font-family="monospace">DONE</text>`;
+
+  phaseOrder.forEach((ph, i) => {
+    const d = phaseMap[ph];
+    const pct = d.total > 0 ? d.done / d.total : 0;
+    const y = 26 + i * (rowH + gap);
+    const color = colors[i % colors.length];
+
+    // Phase label
+    const label = ph.length > 16 ? ph.slice(0,15)+'…' : ph;
+    svg += `<text x="135" y="${y + rowH/2 + 4}" text-anchor="end" font-size="10" fill="#5a7055" font-family="monospace">${label}</text>`;
+
+    // Background track
+    svg += `<rect x="140" y="${y}" width="${barW}" height="${rowH-2}" rx="5" fill="#ece6d4"/>`;
+    // Filled bar
+    if (pct > 0) {
+      svg += `<rect x="140" y="${y}" width="${Math.max(8, pct * barW)}" height="${rowH-2}" rx="5" fill="${color}" opacity=".75"/>`;
+    }
+    // Left accent
+    svg += `<rect x="140" y="${y}" width="3" height="${rowH-2}" rx="2" fill="${color}"/>`;
+    // Task count
+    svg += `<text x="${W-8}" y="${y + rowH/2 + 4}" text-anchor="end" font-size="10" fill="${color}" font-family="monospace">${d.done}/${d.total}</text>`;
+    // Pct label inside bar
+    if (pct > 0.15) {
+      svg += `<text x="${148 + pct*barW/2}" y="${y + rowH/2 + 4}" text-anchor="middle" font-size="9" fill="white" font-family="monospace">${Math.round(pct*100)}%</text>`;
+    }
   });
 
   svg += '</svg>';
@@ -1522,10 +1665,6 @@ function getAllPendingTasks() {
   const p = STATE.profile;
   const priorityScore = {critical:4, high:3, medium:2, low:1};
 
-  // From quests
-  STATE.quests.filter(q => !(q.done && q.doneDate === todayKey())).forEach(q => {
-    tasks.push({id:q.id, title:q.title, priority:q.priority, domain:q.tag, source:'quest', xp:q.xp});
-  });
   // From projects (array format)
   STATE.projects.forEach(proj => {
     proj.tasks.filter(t => t.status !== 'done').forEach(t => {
@@ -1830,7 +1969,12 @@ function buildContext(extra) {
   const nwpS = projectStats('nwp');
   const bizNext = nextTasks('biz',2).map(t=>t.title).join('; ');
   const gardenNext = nextTasks('garden',2).map(t=>t.title).join('; ');
-  const questsDone = STATE.quests.filter(q=>q.done&&q.doneDate===todayKey()).map(q=>q.title).join(', ') || 'none yet';
+  const mitsAll = getMITs();
+  const mitsDone = mitsAll.filter(t => {
+    const proj = STATE.projects.find(p => p.id === t.domain);
+    return proj?.tasks.find(tk => tk.id === t.id)?.status === 'done';
+  });
+  const questsDone = mitsDone.map(t => t.title).join(', ') || 'none yet';
 
   return `CODEX context — ${dow} ${now.getDate()} ${MONTHS[now.getMonth()]} 2026
 
@@ -1838,7 +1982,7 @@ WHO: Cédric, coach + entrepreneur, Isla Cristina, Spain. Partner back end of Ju
 GOAL: Financial independence as fast as possible.
 
 TODAY:
-- Quests completed: ${questsDone}
+- MITs completed today: ${questsDone}
 - XP earned: ${todayXP()}
 
 PROJECTS:
