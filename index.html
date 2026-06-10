@@ -579,12 +579,6 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
   <button class="nav-btn" onclick="goPage('projects')" id="nav-projects">
     <span class="nav-icon">📋</span>Work
   </button>
-  <button class="nav-btn" onclick="goPage('garden')" id="nav-garden">
-    <span class="nav-icon">🌱</span>Garden
-  </button>
-  <button class="nav-btn" onclick="goPage('vision')" id="nav-vision">
-    <span class="nav-icon">🌍</span>Vision
-  </button>
   <button class="nav-btn" onclick="goPage('ai')" id="nav-ai">
     <span class="nav-icon">🤖</span>Ask AI
   </button>
@@ -787,7 +781,7 @@ function todayXP() {
 // ══════════════════════════════════════════════
 
 let currentPage = 'home';
-const pageIds = ['home','plan','projects','biz','garden','vision','ai'];
+const pageIds = ['home','plan','projects','biz','vision','ai'];
 
 function goPage(id) {
   pageIds.forEach(p => {
@@ -806,7 +800,7 @@ function renderPage(id) {
   else if (id === 'projects') renderProjects();
   else if (id === 'biz') { _projView='detail'; _projCurrent='biz'; goPage('projects'); return; }
   else if (id === 'garden') { _projView='detail'; _projCurrent='garden'; goPage('projects'); return; }
-  else if (id === 'vision') renderVision();
+  else if (id === 'vision') { _projView='detail'; _projCurrent='nwp'; goPage('projects'); return; }
   else if (id === 'ai') renderAI();
 }
 
@@ -877,21 +871,16 @@ async function fetchAndRenderCalendar() {
 
 function renderDayShapeWithEvents(sessions) {
   const el = document.getElementById('day-shape');
-  const dow = today().getDay();
-  const fixed = [
-    {t:'08:00', l:'🌿 Morning — Coffee · Shower · Walk Linux & Zina', tp:'routine'},
-    {t:'08:45', l:'🍳 Breakfast', tp:'routine'},
-    {t:'11:30', l: CHORES[dow] || '🏠 House chore', tp:'routine'},
-    {t:'13:30', l:'🥗 Lunch', tp:'routine'},
-    {t:'19:00', l:'🐕 Evening walk — Linux & Zina', tp:'routine'},
-    {t:'20:30', l:'🌙 Dinner', tp:'routine'},
-  ];
-  const sessionSlots = sessions.map(s => ({
-    t: s.start,
-    l: `🔒 ${s.title}${s.end ? ' · ' + s.start + '–' + s.end : ''}`,
-    tp: 'session',
-  }));
-  const all = [...fixed, ...sessionSlots].sort((a, b) => a.t.localeCompare(b.t));
+  // Use live calendar as source of truth — no hardcoded blocks to avoid duplication
+  // If calendar is empty, fall back to static day shape (renderDayShape handles that)
+  const all = sessions.length > 0
+    ? sessions.map(s => ({
+        t: s.start,
+        l: s.title + (s.end ? ' · ' + s.start + '–' + s.end : ''),
+        tp: s.type || 'session',
+      })).sort((a, b) => a.t.localeCompare(b.t))
+    : (() => { renderDayShape(); return null; })();
+  if (!all) return;
   el.innerHTML = '';
   all.forEach(s => {
     const div = document.createElement('div');
@@ -1102,11 +1091,14 @@ function renderProjectDetail(pid) {
     </div>`;
   el.appendChild(hdr);
 
+  const hasGantt = proj.gantt !== false && pid === 'garden';
+
   // Tabs
   const tabs = document.createElement('div');
   tabs.className = 'tab-bar';
   tabs.innerHTML = `
     <button class="tab-btn active" id="tab-kanban-${pid}" onclick="switchProjTab('${pid}','kanban')">Kanban</button>
+    ${hasGantt ? `<button class="tab-btn" id="tab-gantt-${pid}" onclick="switchProjTab('${pid}','gantt')">Timeline</button>` : ''}
     <button class="tab-btn" id="tab-next-${pid}" onclick="switchProjTab('${pid}','next')">Next Actions</button>`;
   el.appendChild(tabs);
 
@@ -1116,6 +1108,15 @@ function renderProjectDetail(pid) {
   kPane.id = `pane-kanban-${pid}`;
   kPane.innerHTML = `<div class="kanban-scroll"><div class="kanban-board" id="kb-${pid}"></div></div>`;
   el.appendChild(kPane);
+
+  // Gantt pane (garden only)
+  if (hasGantt) {
+    const gPane = document.createElement('div');
+    gPane.className = 'tab-content';
+    gPane.id = `pane-gantt-${pid}`;
+    gPane.innerHTML = `<div class="gantt-wrap" id="gantt-${pid}"></div>`;
+    el.appendChild(gPane);
+  }
 
   // Next pane
   const nPane = document.createElement('div');
@@ -1167,10 +1168,11 @@ function renderNextPane(pid) {
 }
 
 function switchProjTab(pid, tab) {
-  ['kanban','next'].forEach(t => {
+  ['kanban','gantt','next'].forEach(t => {
     document.getElementById(`pane-${t}-${pid}`)?.classList.toggle('active', t===tab);
     document.getElementById(`tab-${t}-${pid}`)?.classList.toggle('active', t===tab);
   });
+  if (tab === 'gantt') renderGantt(`gantt-${pid}`);
 }
 
 function renderProjectForm() {
@@ -1304,8 +1306,8 @@ function renderProject(pid) {
 // GANTT
 // ══════════════════════════════════════════════
 
-function renderGantt() {
-  const el = document.getElementById('garden-gantt');
+function renderGantt(targetId) {
+  const el = document.getElementById(targetId || 'garden-gantt');
   if (!el) return;
   el.innerHTML = '';
 
@@ -1524,10 +1526,10 @@ function getAllPendingTasks() {
   STATE.quests.filter(q => !(q.done && q.doneDate === todayKey())).forEach(q => {
     tasks.push({id:q.id, title:q.title, priority:q.priority, domain:q.tag, source:'quest', xp:q.xp});
   });
-  // From projects
-  ['biz','garden','nwp'].forEach(pid => {
-    STATE.projects[pid].tasks.filter(t => t.status !== 'done').forEach(t => {
-      tasks.push({id:t.id, title:t.title, priority:t.priority, domain:pid, source:'project'});
+  // From projects (array format)
+  STATE.projects.forEach(proj => {
+    proj.tasks.filter(t => t.status !== 'done').forEach(t => {
+      tasks.push({id:t.id, title:t.title, priority:t.priority, domain:proj.id, source:'project'});
     });
   });
   // From life tasks
