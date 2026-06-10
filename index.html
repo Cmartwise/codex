@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -285,6 +284,120 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
 .pph-stats{display:flex;gap:14px;margin-top:8px}
 .pph-stat{font-size:10px;opacity:.6;font-family:monospace}
 .pph-stat span{color:var(--gold2);font-size:13px}
+
+/* ── PLAN PAGE ── */
+.profile-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.flag-chip{
+  padding:4px 10px;border-radius:20px;font-size:10px;font-family:monospace;
+  background:var(--forest);color:rgba(232,240,226,.85);
+}
+.energy-badge{
+  display:inline-flex;align-items:center;gap:5px;padding:5px 10px;
+  border-radius:var(--radius-sm);font-size:11px;font-family:monospace;
+}
+.energy-badge.peak{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-border)}
+.energy-badge.dip{background:var(--earth-bg);color:var(--earth);border:1px solid rgba(122,78,42,.2)}
+.mit-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:11px 0;border-bottom:1px solid var(--border);
+}
+.mit-item:last-child{border-bottom:none}
+.mit-num{
+  width:22px;height:22px;border-radius:50%;flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:bold;font-family:monospace;
+  background:var(--forest);color:var(--gold2);
+}
+.mit-body{flex:1}
+.mit-title{font-size:13px;line-height:1.4}
+.mit-meta{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap}
+.mit-tag{font-size:9px;font-family:monospace;padding:2px 7px;border-radius:10px;background:var(--surface);color:var(--muted)}
+.mit-tag.critical{background:var(--urgent-bg);color:var(--urgent)}
+.mit-tag.high{background:var(--gold-bg);color:var(--gold)}
+.mit-tag.coaching{background:var(--gold-bg);color:var(--gold)}
+.mit-tag.app,.mit-tag.garden{background:var(--leaf-bg);color:var(--forest2)}
+.zone-row{display:flex;gap:8px;margin-bottom:8px;align-items:stretch}
+.zone-label{width:46px;font-size:9px;font-family:monospace;color:var(--muted);padding-top:6px;flex-shrink:0;text-align:right}
+.zone-bar{
+  flex:1;border-radius:var(--radius-sm);padding:8px 10px;
+  font-size:11px;line-height:1.4;
+}
+.zone-bar.peak{background:var(--gold-bg);border:1px solid var(--gold-border);color:var(--gold)}
+.zone-bar.rise{background:var(--leaf-bg);border:1px solid var(--leaf-border);color:var(--forest2)}
+.zone-bar.dip{background:var(--earth-bg);border:1px solid rgba(122,78,42,.15);color:var(--muted);font-style:italic}
+.zone-bar.free{background:var(--card);border:1px dashed var(--border);color:var(--muted)}
+.week-strip{display:flex;gap:4px;margin-top:8px}
+.week-day{
+  flex:1;text-align:center;border-radius:var(--radius-sm);
+  padding:8px 2px;cursor:pointer;
+}
+.week-day.today{background:var(--forest);color:var(--gold2)}
+.week-day.past{opacity:.4}
+.week-day .wd-name{font-size:9px;font-family:monospace;color:inherit}
+.week-day .wd-num{font-size:15px;font-style:italic;margin:2px 0}
+.week-day .wd-load{display:flex;justify-content:center;gap:2px;margin-top:3px}
+.load-dot{width:5px;height:5px;border-radius:50%}
+.nudge-card{background:var(--forest)!important;color:#e8f0e2}
+.nudge-card .card-title{color:var(--gold2)}
+.nudge-text{font-size:13px;line-height:1.7;margin-top:6px;font-style:italic}
+.nudge-source{font-size:9px;font-family:monospace;opacity:.4;margin-top:8px}
+.plan-edit-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.plan-edit-row label{font-size:11px;color:var(--muted);width:90px;flex-shrink:0}
+.plan-edit-row input,.plan-edit-row select{
+  flex:1;padding:6px 9px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:var(--surface);
+  color:var(--text);font-family:Georgia,serif;font-size:12px;outline:none;
+}
+.inline-btn{
+  padding:5px 12px;border-radius:var(--radius-sm);border:none;cursor:pointer;
+  font-family:Georgia,serif;font-size:11px;background:var(--forest);color:#e8f0e2;
+}
+.profile-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+
+/* ── HEAT STRIP ── */
+.heat-strip{width:5px;border-radius:3px;align-self:stretch;min-height:28px;flex-shrink:0}
+
+/* ── DYNAMIC PROJECT LIST ── */
+.proj-list-item{
+  display:flex;align-items:center;gap:12px;
+  padding:13px;background:var(--card);border-radius:var(--radius);
+  margin-bottom:8px;box-shadow:var(--shadow);cursor:pointer;
+  border-left:4px solid transparent;transition:transform .1s;
+}
+.proj-list-item:active{transform:scale(.99)}
+.proj-list-icon{font-size:26px;flex-shrink:0;line-height:1}
+.proj-list-info{flex:1;min-width:0}
+.proj-list-title{font-size:14px;font-style:italic;margin-bottom:3px}
+.proj-list-meta{font-size:10px;color:var(--muted);font-family:monospace;margin-bottom:5px}
+.proj-list-arrow{font-size:20px;color:var(--faint);flex-shrink:0}
+.proj-back-btn{
+  display:inline-flex;align-items:center;gap:5px;padding:6px 0 10px;
+  background:none;border:none;cursor:pointer;color:var(--forest2);
+  font-family:Georgia,serif;font-size:12px;
+}
+.add-project-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:14px;border-radius:var(--radius);
+  border:1.5px dashed var(--border);background:none;color:var(--muted);
+  font-family:Georgia,serif;font-size:13px;cursor:pointer;margin-top:4px;
+}
+.add-project-btn:active{background:var(--surface)}
+.proj-form{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:8px;box-shadow:var(--shadow)}
+.proj-form-title{font-size:13px;font-style:italic;margin-bottom:12px;color:var(--forest)}
+.proj-form input,.proj-form select{
+  width:100%;padding:8px 11px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:var(--surface);
+  color:var(--text);font-family:Georgia,serif;font-size:12px;
+  margin-bottom:8px;outline:none;
+}
+.proj-form input:focus{border-color:var(--leaf)}
+.proj-form-row{display:flex;gap:8px}
+.proj-form-row input{flex:1}
+.delete-proj-btn{
+  display:block;width:100%;padding:9px;margin-top:8px;
+  border-radius:var(--radius-sm);border:1px solid rgba(192,64,48,.3);
+  background:none;color:var(--urgent);font-family:Georgia,serif;font-size:12px;cursor:pointer;
+}
 </style>
 </head>
 <body>
@@ -322,50 +435,6 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
   <div class="page" id="page-projects">
     <div class="sec">Active Projects</div>
     <div id="proj-hub"></div>
-  </div>
-
-  <!-- ══ COACHING ══ -->
-  <div class="page" id="page-biz">
-    <div class="proj-page-header biz">
-      <div class="pph-label">PROJECT · BUSINESS</div>
-      <div class="pph-title">Coaching Business</div>
-      <div class="pph-prog-track"><div class="pph-prog-fill" id="biz-prog-fill" style="width:0%"></div></div>
-      <div class="pph-stats">
-        <div class="pph-stat"><span id="biz-done">0</span> done</div>
-        <div class="pph-stat"><span id="biz-todo">0</span> to do</div>
-        <div class="pph-stat">🎯 Revenue priority</div>
-      </div>
-    </div>
-    <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('biz','kanban')">Kanban</button>
-      <button class="tab-btn" onclick="switchTab('biz','next')">Next Actions</button>
-    </div>
-    <div class="tab-content active" id="biz-tab-kanban"><div class="kanban-scroll"><div class="kanban-board" id="biz-kanban"></div></div></div>
-    <div class="tab-content" id="biz-tab-next"><div id="biz-next"></div></div>
-    <button class="add-btn" onclick="openAddTask('biz')">+ Add task</button>
-  </div>
-
-  <!-- ══ GARDEN APP ══ -->
-  <div class="page" id="page-garden">
-    <div class="proj-page-header garden">
-      <div class="pph-label">PROJECT · APP</div>
-      <div class="pph-title">The Garden App</div>
-      <div class="pph-prog-track"><div class="pph-prog-fill" id="garden-prog-fill" style="width:0%"></div></div>
-      <div class="pph-stats">
-        <div class="pph-stat"><span id="garden-done">0</span> done</div>
-        <div class="pph-stat"><span id="garden-todo">0</span> to do</div>
-        <div class="pph-stat">🗓 Aug 31 deadline</div>
-      </div>
-    </div>
-    <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('garden','kanban')">Kanban</button>
-      <button class="tab-btn" onclick="switchTab('garden','gantt')">Timeline</button>
-      <button class="tab-btn" onclick="switchTab('garden','next')">Next Up</button>
-    </div>
-    <div class="tab-content active" id="garden-tab-kanban"><div class="kanban-scroll"><div class="kanban-board" id="garden-kanban"></div></div></div>
-    <div class="tab-content" id="garden-tab-gantt"><div class="gantt-wrap" id="garden-gantt"></div></div>
-    <div class="tab-content" id="garden-tab-next"><div id="garden-next"></div></div>
-    <button class="add-btn" onclick="openAddTask('garden')">+ Add task</button>
   </div>
 
   <!-- ══ VISION (NWP + Personal) ══ -->
@@ -425,15 +494,90 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
 
 </div>
 
+<!-- ══ PLAN PAGE ══ -->
+<div id="page-plan" class="page">
+  <div class="sec" style="display:flex;justify-content:space-between;align-items:center">
+    <span>Planning Profile</span>
+    <button class="inline-btn" onclick="toggleProfileEdit()" id="profile-edit-btn">Edit</button>
+  </div>
+
+  <div class="card" id="profile-view-card">
+    <div id="plan-profile-view"></div>
+  </div>
+
+  <div id="profile-edit-form" style="display:none" class="card">
+    <div class="plan-edit-row">
+      <label>Name</label>
+      <input id="pf-name" type="text">
+    </div>
+    <div class="plan-edit-row">
+      <label>Peak energy</label>
+      <input id="pf-peak-start" type="time"> <span style="font-size:11px;color:var(--muted);margin:0 4px">–</span> <input id="pf-peak-end" type="time">
+    </div>
+    <div class="plan-edit-row">
+      <label>Afternoon dip</label>
+      <input id="pf-dip-start" type="time"> <span style="font-size:11px;color:var(--muted);margin:0 4px">–</span> <input id="pf-dip-end" type="time">
+    </div>
+    <div class="plan-edit-row">
+      <label>Deep work max</label>
+      <select id="pf-deepwork">
+        <option value="50">50 min</option>
+        <option value="75">75 min</option>
+        <option value="90">90 min</option>
+        <option value="120">120 min</option>
+      </select>
+    </div>
+    <div class="plan-edit-row">
+      <label>Daily capacity</label>
+      <select id="pf-capacity">
+        <option value="4">4 hours</option>
+        <option value="5">5 hours</option>
+        <option value="6">6 hours</option>
+        <option value="7">7 hours</option>
+        <option value="8">8 hours</option>
+      </select>
+    </div>
+    <button class="btn-primary" style="margin-top:4px" onclick="saveProfile()">Save profile</button>
+  </div>
+
+  <div class="sec">🎯 Today's 3 MITs</div>
+  <div class="card">
+    <div style="font-size:10px;color:var(--muted);margin-bottom:10px;font-family:monospace">Most Important Tasks — selected for your profile</div>
+    <div id="mit-list"></div>
+  </div>
+
+  <div class="sec">⚡ Energy Map</div>
+  <div class="card" id="energy-map"></div>
+
+  <div class="sec">🔬 Energy Alignment</div>
+  <div class="card" id="energy-alignment">
+    <div style="font-size:10px;color:var(--muted);margin-bottom:8px;font-family:monospace">Ideal energy zones vs. today's actual schedule</div>
+    <div id="alignment-content"></div>
+  </div>
+
+  <div class="sec">📅 Week Compass</div>
+  <div class="card">
+    <div style="font-size:10px;color:var(--muted);margin-bottom:8px;font-family:monospace">Task load this week</div>
+    <div class="week-strip" id="week-strip"></div>
+  </div>
+
+  <div class="sec">💡 Daily Nudge</div>
+  <div class="card nudge-card">
+    <div id="daily-nudge"></div>
+  </div>
+
+  <div style="height:12px"></div>
+</div>
+
 <nav class="bottom-nav">
   <button class="nav-btn active" onclick="goPage('home')" id="nav-home">
     <span class="nav-icon">🏠</span>Today
   </button>
-  <button class="nav-btn" onclick="goPage('projects')" id="nav-projects">
-    <span class="nav-icon">📋</span>Projects
+  <button class="nav-btn" onclick="goPage('plan')" id="nav-plan">
+    <span class="nav-icon">🧠</span>Plan
   </button>
-  <button class="nav-btn" onclick="goPage('biz')" id="nav-biz">
-    <span class="nav-icon">💼</span>Business
+  <button class="nav-btn" onclick="goPage('projects')" id="nav-projects">
+    <span class="nav-icon">📋</span>Work
   </button>
   <button class="nav-btn" onclick="goPage('garden')" id="nav-garden">
     <span class="nav-icon">🌱</span>Garden
@@ -482,9 +626,8 @@ const DEFAULT_DATA = {
     {id:'q_app', tag:'app', title:'Install Node.js (LTS) + VS Code', note:'Phase 1 of the Garden App starts with these two installs.', xp:80, priority:'high', done:false},
     {id:'q_dogs', tag:'personal', title:'Walk Linux and Zina ×3', note:'Morning, midday, evening. Your natural rhythm — use it.', xp:60, priority:'medium', done:false},
   ],
-  projects: {
-    biz: {
-      tasks: [
+  projects: [
+   {id:'biz', title:'Coaching Business', icon:'💼', color:'#c8881a', description:'Language coaching practice', tasks: [
         {id:'b1', title:'Define core coaching offer (1 sentence + 3 bullets)', priority:'critical', status:'todo', phase:'Foundation'},
         {id:'b2', title:'Reach out to 10 warm referrals', priority:'critical', status:'todo', phase:'Foundation'},
         {id:'b3', title:'Build simple coaching landing page', priority:'high', status:'todo', phase:'Growth'},
@@ -496,10 +639,8 @@ const DEFAULT_DATA = {
         {id:'b9', title:'Create social media content calendar', priority:'low', status:'todo', phase:'Scale'},
         {id:'b10', title:'Explore group coaching format', priority:'low', status:'todo', phase:'Scale'},
       ]
-    },
-    garden: {
-      tasks: [
-        // Phase 1 — Foundation (by Jun 29)
+   },
+   {id:'garden', title:'Garden App', icon:'🌿', color:'#4db86a', description:'Plant tracking mobile app — React Native', tasks: [
         {id:'g1', title:'Install Node.js (LTS) + VS Code', priority:'critical', status:'todo', phase:'Phase 1'},
         {id:'g2', title:'Install Expo CLI globally', priority:'critical', status:'todo', phase:'Phase 1'},
         {id:'g3', title:'Create project: npx create-expo-app TheGarden', priority:'critical', status:'todo', phase:'Phase 1'},
@@ -507,7 +648,6 @@ const DEFAULT_DATA = {
         {id:'g5', title:'Learn RN basics: View, Text, StyleSheet, useState', priority:'high', status:'todo', phase:'Phase 1'},
         {id:'g6', title:'Convert Dashboard screen to React Native', priority:'high', status:'todo', phase:'Phase 1'},
         {id:'g7', title:'Convert PlantCard component', priority:'medium', status:'todo', phase:'Phase 1'},
-        // Phase 2 — Build (by Jul 27)
         {id:'g8', title:'Set up Supabase project', priority:'critical', status:'todo', phase:'Phase 2'},
         {id:'g9', title:'Design and create DB schema', priority:'critical', status:'todo', phase:'Phase 2'},
         {id:'g10', title:'Implement auth (email + anonymous)', priority:'high', status:'todo', phase:'Phase 2'},
@@ -516,7 +656,6 @@ const DEFAULT_DATA = {
         {id:'g13', title:'Photo ID flow → Anthropic API', priority:'high', status:'todo', phase:'Phase 2'},
         {id:'g14', title:'Push notifications (expo-notifications)', priority:'medium', status:'todo', phase:'Phase 2'},
         {id:'g15', title:'OpenWeatherMap live weather integration', priority:'medium', status:'todo', phase:'Phase 2'},
-        // Phase 3 — Launch (by Aug 31)
         {id:'g16', title:'Full UI polish pass', priority:'medium', status:'todo', phase:'Phase 3'},
         {id:'g17', title:'Offline support (AsyncStorage)', priority:'medium', status:'todo', phase:'Phase 3'},
         {id:'g18', title:'Beta testing — 5 users', priority:'high', status:'todo', phase:'Phase 3'},
@@ -525,9 +664,8 @@ const DEFAULT_DATA = {
         {id:'g21', title:'Screenshots + store listing copy', priority:'high', status:'todo', phase:'Phase 3'},
         {id:'g22', title:'Submit to both app stores', priority:'critical', status:'todo', phase:'Phase 3'},
       ]
-    },
-    nwp: {
-      tasks: [
+   },
+   {id:'nwp', title:'New World Project', icon:'🌍', color:'#6ab4c0', description:'Long-term creative and philosophical world-building', tasks: [
         {id:'n1', title:'Answer 3 world-building questions (parallel vs time travel, etc.)', priority:'critical', status:'todo', phase:'World Bible'},
         {id:'n2', title:'Document the inner council characters', priority:'high', status:'todo', phase:'World Bible'},
         {id:'n3', title:'Describe the regenerative world — sensory, visual, emotional', priority:'high', status:'todo', phase:'World Bible'},
@@ -536,8 +674,8 @@ const DEFAULT_DATA = {
         {id:'n6', title:'Write NWP philosophy summary document', priority:'medium', status:'todo', phase:'Philosophy'},
         {id:'n7', title:'Sketch the city-builder game concept', priority:'low', status:'todo', phase:'Games'},
       ]
-    }
-  },
+   }
+  ],
   personal: [
     {id:'p1', title:'Achieve financial independence', note:'The whole point. Everything else serves this.', status:'active'},
     {id:'p2', title:'Build morning routine consistency', note:'8:00 target — coffee, shower, Linux & Zina', status:'active'},
@@ -545,7 +683,19 @@ const DEFAULT_DATA = {
     {id:'p4', title:'Eat fresher — more vegetables, fruits, less processed', note:'Connects to solarpunk values and health.', status:'active'},
     {id:'p5', title:'Garden: repot strawberry to 6L + worm castings', note:'Urgent — plant is stressed at 65% health', status:'active'},
   ],
-  xpLog: {}
+  xpLog: {},
+  profile: {
+    name: 'Cédric',
+    flags: ['adhd_inattentive', 'procrastinator'],
+    peakStart: '09:00',
+    peakEnd: '12:00',
+    dipStart: '14:00',
+    dipEnd: '16:30',
+    deepWorkMins: 90,
+    dailyCapacityHours: 6,
+    mitCount: 3,
+  },
+  lifeTasks: []
 };
 
 // ══════════════════════════════════════════════
@@ -555,9 +705,27 @@ const DEFAULT_DATA = {
 function loadState() {
   try {
     const saved = localStorage.getItem('codex_v2');
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const s = JSON.parse(saved);
+      return migrateState(s);
+    }
   } catch(e) {}
   return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+function migrateState(s) {
+  // Migrate projects from object format to array format
+  if (s.projects && !Array.isArray(s.projects)) {
+    const old = s.projects;
+    s.projects = [
+      {id:'biz', title:'Coaching Business', icon:'💼', color:'#c8881a', description:'Language coaching practice', tasks: old.biz?.tasks || []},
+      {id:'garden', title:'Garden App', icon:'🌿', color:'#4db86a', description:'Plant tracking app', tasks: old.garden?.tasks || []},
+      {id:'nwp', title:'New World Project', icon:'🌍', color:'#6ab4c0', description:'Long-term creative project', tasks: old.nwp?.tasks || []},
+    ];
+  }
+  if (!s.profile) s.profile = JSON.parse(JSON.stringify(DEFAULT_DATA.profile));
+  if (!s.lifeTasks) s.lifeTasks = [];
+  return s;
 }
 
 function saveState() {
@@ -576,24 +744,31 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 function today() { return new Date(); }
 function todayKey() { return today().toISOString().slice(0,10); }
 
+function getProject(pid) {
+  return STATE.projects.find(p => p.id === pid);
+}
+
 function projectProgress(pid) {
-  const tasks = STATE.projects[pid].tasks;
-  if (!tasks.length) return 0;
-  const done = tasks.filter(t => t.status === 'done').length;
-  return Math.round((done / tasks.length) * 100);
+  const proj = getProject(pid);
+  if (!proj || !proj.tasks.length) return 0;
+  const done = proj.tasks.filter(t => t.status === 'done').length;
+  return Math.round((done / proj.tasks.length) * 100);
 }
 
 function projectStats(pid) {
-  const tasks = STATE.projects[pid].tasks;
+  const proj = getProject(pid);
+  if (!proj) return {done:0, todo:0, total:0};
   return {
-    done: tasks.filter(t => t.status === 'done').length,
-    todo: tasks.filter(t => t.status !== 'done').length,
-    total: tasks.length
+    done: proj.tasks.filter(t => t.status === 'done').length,
+    todo: proj.tasks.filter(t => t.status !== 'done').length,
+    total: proj.tasks.length
   };
 }
 
 function nextTasks(pid, n=3) {
-  return STATE.projects[pid].tasks
+  const proj = getProject(pid);
+  if (!proj) return [];
+  return proj.tasks
     .filter(t => t.status !== 'done')
     .sort((a,b) => {
       const order = {critical:0, high:1, medium:2, low:3};
@@ -612,7 +787,7 @@ function todayXP() {
 // ══════════════════════════════════════════════
 
 let currentPage = 'home';
-const pageIds = ['home','projects','biz','garden','vision','ai'];
+const pageIds = ['home','plan','projects','biz','garden','vision','ai'];
 
 function goPage(id) {
   pageIds.forEach(p => {
@@ -627,9 +802,10 @@ function goPage(id) {
 
 function renderPage(id) {
   if (id === 'home') renderHome();
+  else if (id === 'plan') renderPlan();
   else if (id === 'projects') renderProjects();
-  else if (id === 'biz') renderProject('biz');
-  else if (id === 'garden') renderProject('garden');
+  else if (id === 'biz') { _projView='detail'; _projCurrent='biz'; goPage('projects'); return; }
+  else if (id === 'garden') { _projView='detail'; _projCurrent='garden'; goPage('projects'); return; }
   else if (id === 'vision') renderVision();
   else if (id === 'ai') renderAI();
 }
@@ -649,32 +825,96 @@ function renderHeader() {
 // HOME / DASHBOARD
 // ══════════════════════════════════════════════
 
+// ── ENERGY HEAT BAR ──────────────────────────────
+function timeToMins(t) {
+  const [h,m] = (t||'00:00').split(':').map(Number);
+  return h*60+m;
+}
+
+function getHeatColor(timeStr) {
+  const pf = STATE.profile || {};
+  const mins = timeToMins(timeStr);
+  const peakS = timeToMins(pf.peakStart || '09:00');
+  const peakE = timeToMins(pf.peakEnd   || '12:00');
+  const dipS  = timeToMins(pf.dipStart  || '14:00');
+  const dipE  = timeToMins(pf.dipEnd    || '16:30');
+
+  if (mins >= peakS && mins < peakE)        return '#e8a820'; // gold — peak
+  if (mins >= peakS-60 && mins < peakS)     return '#b5c84a'; // lime — rising
+  if (mins >= peakE && mins < dipS)         return '#8ab890'; // sage — post-peak
+  if (mins >= dipS && mins < dipE)          return '#8a7a9a'; // muted purple — dip
+  if (mins >= dipE && mins < dipE+90)       return '#4db86a'; // green — recovery
+  if (mins < 7*60)                          return '#3a4a5a'; // dark — very early
+  return '#6a8a78'; // neutral teal — other
+}
+
+// ── LIVE CALENDAR ──────────────────────────────
+const CALENDAR_API = 'https://zsgnggtwfxyqzvrnlaqg.supabase.co/functions/v1/calendar';
+
+async function fetchAndRenderCalendar() {
+  try {
+    const res = await fetch(`${CALENDAR_API}?date=${todayKey()}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const { events } = await res.json();
+    const list = events || [];
+    window._lastCalEvents = list; // stored for Energy Alignment in Plan page
+    renderDayShapeWithEvents(list);
+    document.getElementById('s-sessions').textContent = list.length || '—';
+    const busyHours = list.reduce((acc, e) => {
+      const [sh, sm] = e.start.split(':').map(Number);
+      const [eh, em] = e.end.split(':').map(Number);
+      return acc + (eh + em/60 - sh - sm/60);
+    }, 0);
+    document.getElementById('s-free').textContent = Math.max(0, 8 - busyHours).toFixed(0) + 'h';
+    document.getElementById('cal-loading')?.remove();
+  } catch (e) {
+    console.warn('Calendar fetch failed:', e);
+    document.getElementById('cal-loading')?.remove();
+    document.getElementById('s-sessions').textContent = '—';
+    document.getElementById('s-free').textContent = '—';
+  }
+}
+
+function renderDayShapeWithEvents(sessions) {
+  const el = document.getElementById('day-shape');
+  const dow = today().getDay();
+  const fixed = [
+    {t:'08:00', l:'🌿 Morning — Coffee · Shower · Walk Linux & Zina', tp:'routine'},
+    {t:'08:45', l:'🍳 Breakfast', tp:'routine'},
+    {t:'11:30', l: CHORES[dow] || '🏠 House chore', tp:'routine'},
+    {t:'13:30', l:'🥗 Lunch', tp:'routine'},
+    {t:'19:00', l:'🐕 Evening walk — Linux & Zina', tp:'routine'},
+    {t:'20:30', l:'🌙 Dinner', tp:'routine'},
+  ];
+  const sessionSlots = sessions.map(s => ({
+    t: s.start,
+    l: `🔒 ${s.title}${s.end ? ' · ' + s.start + '–' + s.end : ''}`,
+    tp: 'session',
+  }));
+  const all = [...fixed, ...sessionSlots].sort((a, b) => a.t.localeCompare(b.t));
+  el.innerHTML = '';
+  all.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'day-block';
+    div.innerHTML = `<div class="heat-strip" style="background:${getHeatColor(s.t)}"></div><div class="day-time">${s.t}</div><div class="day-bar ${s.tp}">${s.l}</div>`;
+    el.appendChild(div);
+  });
+}
+
 function renderHome() {
   renderHeader();
   renderQuests();
   renderDayShape();
   renderOverallProgress();
 
-  // Stats
-  const now = today();
-  const h = now.getHours();
-  document.getElementById('s-sessions').textContent = getSessionCount();
-  document.getElementById('s-free').textContent = getFreeHours() + 'h';
+  // Stats — live calendar will overwrite these once loaded
+  document.getElementById('s-sessions').textContent = '…';
+  document.getElementById('s-free').textContent = '…';
   const done = STATE.quests.filter(q => q.done && q.doneDate === todayKey()).length;
   document.getElementById('s-quests').textContent = `${done}/${STATE.quests.length}`;
-}
 
-function getSessionCount() {
-  const dow = today().getDay(); // 0=Sun
-  // Rough coaching schedule from calendar
-  const sched = {1:[2], 2:[2,2], 3:[1,2], 4:[1,1,1,1,2], 5:[3,1,1], 6:[1], 0:[]};
-  return (sched[dow] || []).length || '—';
-}
-
-function getFreeHours() {
-  const dow = today().getDay();
-  const busy = {0:0, 1:3, 2:4, 3:3, 4:6, 5:4, 6:1};
-  return Math.max(0, 8 - (busy[dow] || 3));
+  // Fetch live sessions in background (non-blocking)
+  fetchAndRenderCalendar();
 }
 
 function renderQuests() {
@@ -756,27 +996,30 @@ function renderDayShape() {
   slots.forEach(s => {
     const div = document.createElement('div');
     div.className = 'day-block';
-    div.innerHTML = `<div class="day-time">${s.t}</div><div class="day-bar ${s.tp}">${s.l}</div>`;
+    div.innerHTML = `<div class="heat-strip" style="background:${getHeatColor(s.t)}"></div><div class="day-time">${s.t}</div><div class="day-bar ${s.tp}">${s.l}</div>`;
     el.appendChild(div);
   });
+  // Temporary loading hint — removed once live calendar data arrives
+  const hint = document.createElement('div');
+  hint.id = 'cal-loading';
+  hint.style.cssText = 'font-size:10px;color:var(--muted);font-style:italic;padding:4px 2px;opacity:0.7';
+  hint.textContent = '⟳ Loading sessions from Google Calendar…';
+  el.appendChild(hint);
 }
 
 function renderOverallProgress() {
   const el = document.getElementById('overall-progress');
   el.innerHTML = '';
-  const projs = [
-    {id:'biz', label:'Coaching Business', color:'var(--gold2)'},
-    {id:'garden', label:'Garden App', color:'var(--leaf)'},
-    {id:'nwp', label:'New World Project', color:'#6ab4c0'},
-  ];
-  projs.forEach(p => {
+  STATE.projects.forEach(p => {
     const pct = projectProgress(p.id);
     const s = projectStats(p.id);
     const card = document.createElement('div');
     card.className = 'card-sm';
+    card.style.cursor = 'pointer';
+    card.onclick = () => { _projView='detail'; _projCurrent=p.id; goPage('projects'); };
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-        <span style="font-size:12px">${p.label}</span>
+        <span style="font-size:12px">${p.icon} ${p.title}</span>
         <span style="font-size:11px;font-family:monospace;color:var(--muted)">${s.done}/${s.total}</span>
       </div>
       <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:${p.color}"></div></div>`;
@@ -788,40 +1031,204 @@ function renderOverallProgress() {
 // PROJECTS HUB
 // ══════════════════════════════════════════════
 
+let _projView = 'list'; // 'list' | 'detail' | 'add'
+let _projCurrent = null;
+
 function renderProjects() {
+  if (_projView === 'list') renderProjectList();
+  else if (_projView === 'detail') renderProjectDetail(_projCurrent);
+  else if (_projView === 'add') renderProjectForm();
+}
+
+function renderProjectList() {
   const el = document.getElementById('proj-hub');
   el.innerHTML = '';
-  const defs = [
-    {id:'biz', cls:'biz', label:'Coaching Business', badge:'urgent', badgeTxt:'Revenue Priority',
-     desc:'Language coaching with 10+ active students. Goal: consistent monthly income + clear offer.',
-     page:'biz'},
-    {id:'garden', cls:'garden', label:'The Garden App', badge:'active', badgeTxt:'12 weeks to launch',
-     desc:'React Native plant care app. AI identification, climate-aware advice, Huelva-optimised. Aug 31 deadline.',
-     page:'garden'},
-    {id:'nwp', cls:'nwp', label:'New World Project', badge:'future', badgeTxt:'Creative',
-     desc:'Philosophical living document + sci-fi book + city-builder game concept. Regenerative civilisation.',
-     page:'vision'},
-  ];
-  defs.forEach(d => {
-    const pct = projectProgress(d.id);
-    const s = projectStats(d.id);
-    const next = nextTasks(d.id, 1)[0];
-    const card = document.createElement('div');
-    card.className = `proj-card ${d.cls}`;
-    card.innerHTML = `
-      <div class="proj-header">
-        <div class="proj-title">${d.label}</div>
-        <div class="proj-badge ${d.badge}">${d.badgeTxt}</div>
+  STATE.projects.forEach(proj => {
+    const pct = projectProgress(proj.id);
+    const s = projectStats(proj.id);
+    const next = nextTasks(proj.id, 1)[0];
+    const item = document.createElement('div');
+    item.className = 'proj-list-item';
+    item.style.borderLeftColor = proj.color || 'var(--leaf)';
+    item.innerHTML = `
+      <div class="proj-list-icon">${proj.icon || '📁'}</div>
+      <div class="proj-list-info">
+        <div class="proj-list-title">${proj.title}</div>
+        <div class="proj-list-meta">${s.done}/${s.total} tasks · ${pct}%</div>
+        <div class="pph-prog-track" style="height:3px">
+          <div class="pph-prog-fill" style="width:${pct}%;background:${proj.color || 'var(--leaf)'}"></div>
+        </div>
+        ${next ? `<div style="font-size:10px;color:var(--muted);margin-top:4px;font-style:italic">→ ${next.title.slice(0,50)}</div>` : ''}
       </div>
-      <div class="proj-desc">${d.desc}</div>
-      <div class="prog-wrap">
-        <div class="prog-label"><span>Progress</span><span>${s.done}/${s.total} tasks · ${pct}%</span></div>
-        <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
-      </div>
-      ${next ? `<div class="proj-next">→ <strong>Next:</strong> ${next.title}</div>` : ''}`;
-    card.addEventListener('click', () => goPage(d.page));
-    el.appendChild(card);
+      <div class="proj-list-arrow">›</div>`;
+    item.addEventListener('click', () => { _projView='detail'; _projCurrent=proj.id; renderProjects(); });
+    el.appendChild(item);
   });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-project-btn';
+  addBtn.innerHTML = '＋ New project';
+  addBtn.onclick = () => { _projView='add'; _projCurrent=null; renderProjects(); };
+  el.appendChild(addBtn);
+}
+
+function renderProjectDetail(pid) {
+  const proj = getProject(pid);
+  if (!proj) { _projView='list'; renderProjectList(); return; }
+  const el = document.getElementById('proj-hub');
+  el.innerHTML = '';
+  const s = projectStats(pid);
+  const pct = projectProgress(pid);
+
+  // Back
+  const back = document.createElement('button');
+  back.className = 'proj-back-btn';
+  back.innerHTML = '‹ All Projects';
+  back.onclick = () => { _projView='list'; renderProjects(); };
+  el.appendChild(back);
+
+  // Header
+  const hdr = document.createElement('div');
+  hdr.className = 'proj-page-header';
+  hdr.style.cssText = `background:var(--forest);border-radius:var(--radius);padding:14px;margin-bottom:12px;color:#e8f0e2;position:relative;overflow:hidden`;
+  hdr.innerHTML = `
+    <div style="font-size:9px;letter-spacing:2px;opacity:.5;font-family:monospace;margin-bottom:3px">PROJECT</div>
+    <div style="font-size:18px;font-style:italic;margin-bottom:6px">${proj.icon} ${proj.title}</div>
+    ${proj.description ? `<div style="font-size:10px;opacity:.55;margin-bottom:8px">${proj.description}</div>` : ''}
+    <div class="pph-prog-track"><div class="pph-prog-fill" style="width:${pct}%;background:linear-gradient(90deg,${proj.color},${proj.color}99)"></div></div>
+    <div class="pph-stats">
+      <div class="pph-stat"><span>${s.done}</span> done</div>
+      <div class="pph-stat"><span>${s.todo}</span> to do</div>
+      <div class="pph-stat"><span>${s.total}</span> total</div>
+    </div>`;
+  el.appendChild(hdr);
+
+  // Tabs
+  const tabs = document.createElement('div');
+  tabs.className = 'tab-bar';
+  tabs.innerHTML = `
+    <button class="tab-btn active" id="tab-kanban-${pid}" onclick="switchProjTab('${pid}','kanban')">Kanban</button>
+    <button class="tab-btn" id="tab-next-${pid}" onclick="switchProjTab('${pid}','next')">Next Actions</button>`;
+  el.appendChild(tabs);
+
+  // Kanban pane
+  const kPane = document.createElement('div');
+  kPane.className = 'tab-content active';
+  kPane.id = `pane-kanban-${pid}`;
+  kPane.innerHTML = `<div class="kanban-scroll"><div class="kanban-board" id="kb-${pid}"></div></div>`;
+  el.appendChild(kPane);
+
+  // Next pane
+  const nPane = document.createElement('div');
+  nPane.className = 'tab-content';
+  nPane.id = `pane-next-${pid}`;
+  nPane.innerHTML = `<div id="next-${pid}"></div>`;
+  el.appendChild(nPane);
+
+  // Add task
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-btn';
+  addBtn.innerHTML = '+ Add task';
+  addBtn.onclick = () => openAddTask(pid);
+  el.appendChild(addBtn);
+
+  // Edit/delete project
+  const editBtn = document.createElement('button');
+  editBtn.className = 'delete-proj-btn';
+  editBtn.innerHTML = '⚙ Edit / delete this project';
+  editBtn.onclick = () => { _projView='add'; _projCurrent=pid; renderProjects(); };
+  el.appendChild(editBtn);
+
+  renderKanban(pid, `kb-${pid}`);
+  renderNextPane(pid);
+}
+
+function renderNextPane(pid) {
+  const nextEl = document.getElementById(`next-${pid}`);
+  if (!nextEl) return;
+  nextEl.innerHTML = '';
+  const tasks = nextTasks(pid, 8);
+  if (!tasks.length) {
+    nextEl.innerHTML = '<div class="card-sm" style="text-align:center;font-style:italic;color:var(--muted)">All tasks complete! 🎉</div>';
+    return;
+  }
+  tasks.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'card-sm';
+    card.style.cssText = 'display:flex;align-items:flex-start;gap:10px;cursor:pointer';
+    card.innerHTML = `<div>
+      <div style="font-size:12px;margin-bottom:3px">${t.title}</div>
+      <div style="display:flex;gap:6px">
+        <span class="chip ${t.priority}">${t.priority}</span>
+        <span style="font-size:9px;color:var(--faint);font-family:monospace">${t.phase||''}</span>
+      </div></div>`;
+    card.addEventListener('click', () => cycleStatus(pid, t.id));
+    nextEl.appendChild(card);
+  });
+}
+
+function switchProjTab(pid, tab) {
+  ['kanban','next'].forEach(t => {
+    document.getElementById(`pane-${t}-${pid}`)?.classList.toggle('active', t===tab);
+    document.getElementById(`tab-${t}-${pid}`)?.classList.toggle('active', t===tab);
+  });
+}
+
+function renderProjectForm() {
+  const el = document.getElementById('proj-hub');
+  el.innerHTML = '';
+  const isEdit = !!_projCurrent;
+  const proj = isEdit ? getProject(_projCurrent) : null;
+
+  const back = document.createElement('button');
+  back.className = 'proj-back-btn';
+  back.innerHTML = isEdit ? `‹ Back to ${proj?.title}` : '‹ All Projects';
+  back.onclick = () => { _projView = isEdit ? 'detail' : 'list'; renderProjects(); };
+  el.appendChild(back);
+
+  const ICONS = ['📁','💼','🌿','🌍','🎯','📚','💡','🏠','🎨','🎮','🏋','🌱','⚡','🔧','📱'];
+  const COLORS = ['#c8881a','#4db86a','#6ab4c0','#c04030','#9b8bc0','#5a8a70','#e8a820','#7a4e2a'];
+
+  const form = document.createElement('div');
+  form.className = 'proj-form';
+  form.innerHTML = `
+    <div class="proj-form-title">${isEdit ? 'Edit project' : 'New project'}</div>
+    <input id="pf-proj-title" placeholder="Project name" value="${proj?.title || ''}">
+    <input id="pf-proj-desc" placeholder="Short description (optional)" value="${proj?.description || ''}">
+    <div class="proj-form-row">
+      <select id="pf-proj-icon">${ICONS.map(i => `<option value="${i}" ${proj?.icon===i?'selected':''}>${i}</option>`).join('')}</select>
+      <select id="pf-proj-color">${COLORS.map(c => `<option value="${c}" ${proj?.color===c?'selected':''}>${c}</option>`).join('')}</select>
+    </div>
+    <button class="btn-primary" onclick="saveProjectForm()">Save project</button>
+    ${isEdit ? `<button class="delete-proj-btn" onclick="deleteProject('${_projCurrent}')">Delete this project</button>` : ''}`;
+  el.appendChild(form);
+}
+
+function saveProjectForm() {
+  const title = document.getElementById('pf-proj-title').value.trim();
+  if (!title) return;
+  const icon = document.getElementById('pf-proj-icon').value;
+  const color = document.getElementById('pf-proj-color').value;
+  const description = document.getElementById('pf-proj-desc').value.trim();
+  if (_projCurrent) {
+    const proj = getProject(_projCurrent);
+    if (proj) { proj.title = title; proj.icon = icon; proj.color = color; proj.description = description; }
+  } else {
+    const id = 'proj_' + Date.now();
+    STATE.projects.push({id, title, icon, color, description, tasks:[]});
+    _projCurrent = id;
+  }
+  saveState();
+  _projView = 'detail';
+  renderProjects();
+}
+
+function deleteProject(pid) {
+  if (!confirm(`Delete "${getProject(pid)?.title}"? This cannot be undone.`)) return;
+  STATE.projects = STATE.projects.filter(p => p.id !== pid);
+  saveState();
+  _projView = 'list';
+  _projCurrent = null;
+  renderProjects();
 }
 
 // ══════════════════════════════════════════════
@@ -839,7 +1246,7 @@ function renderKanban(pid, containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '';
-  const tasks = STATE.projects[pid].tasks;
+  const tasks = getProject(pid)?.tasks || [];
   COLS.forEach(col => {
     const colTasks = tasks.filter(t => t.status === col.id);
     const colEl = document.createElement('div');
@@ -871,56 +1278,26 @@ function renderKanban(pid, containerId) {
 }
 
 function cycleStatus(pid, taskId) {
-  const task = STATE.projects[pid].tasks.find(t => t.id === taskId);
+  const proj = getProject(pid);
+  if (!proj) return;
+  const task = proj.tasks.find(t => t.id === taskId);
   if (!task) return;
   const order = ['todo','doing','review','done'];
   const idx = order.indexOf(task.status);
   task.status = order[(idx + 1) % order.length];
   saveState();
-  renderProject(pid);
+  renderProjectDetail(pid);
 }
 
 // ══════════════════════════════════════════════
 // PROJECT PAGES
 // ══════════════════════════════════════════════
 
+// Legacy redirect — all project rendering is now dynamic
 function renderProject(pid) {
-  const s = projectStats(pid);
-  const pct = projectProgress(pid);
-
-  document.getElementById(`${pid}-prog-fill`).style.width = pct + '%';
-  document.getElementById(`${pid}-done`).textContent = s.done;
-  document.getElementById(`${pid}-todo`).textContent = s.todo;
-
-  // Kanban
-  renderKanban(pid, `${pid}-kanban`);
-
-  // Next actions
-  const nextEl = document.getElementById(`${pid}-next`);
-  if (nextEl) {
-    nextEl.innerHTML = '';
-    nextTasks(pid, 5).forEach(t => {
-      const card = document.createElement('div');
-      card.className = 'card-sm';
-      card.style.cssText = 'display:flex;align-items:flex-start;gap:10px;cursor:pointer';
-      card.innerHTML = `
-        <div>
-          <div style="font-size:12px;margin-bottom:3px">${t.title}</div>
-          <div style="display:flex;gap:6px">
-            <span class="chip ${t.priority}">${t.priority}</span>
-            <span style="font-size:9px;color:var(--faint);font-family:monospace">${t.phase||''}</span>
-          </div>
-        </div>`;
-      card.addEventListener('click', () => { cycleStatus(pid, t.id); });
-      nextEl.appendChild(card);
-    });
-    if (!nextTasks(pid, 1).length) {
-      nextEl.innerHTML = '<div class="card-sm" style="text-align:center;font-style:italic;color:var(--muted)">All tasks complete! 🎉</div>';
-    }
-  }
-
-  // Garden Gantt
-  if (pid === 'garden') renderGantt();
+  _projView = 'detail';
+  _projCurrent = pid;
+  renderProjectDetail(pid);
 }
 
 // ══════════════════════════════════════════════
@@ -1035,6 +1412,408 @@ function renderVision() {
       </div>`;
     el.appendChild(card);
   });
+}
+
+// ══════════════════════════════════════════════
+// PLAN PAGE — Intelligent scheduling
+// ══════════════════════════════════════════════
+
+const ADHD_NUDGES = [
+  {text: "Start with the smallest possible version of your hardest task. Just open the file. That's the whole task for now.", source: "Task initiation — ADHD-inattentive"},
+  {text: "Your peak window is 09:00–12:00. That's where the hard, important work goes. Guard it like money.", source: "Time blocking — ADHD"},
+  {text: "Time blindness is real. Set a timer before each block — externalize time so your brain doesn't have to track it.", source: "Time blindness — ADHD"},
+  {text: "Procrastination is usually anxiety in disguise. Which task feels heaviest right now? Do exactly 5 minutes of it.", source: "Procrastination psychology"},
+  {text: "Write it down the moment it comes up. Working memory in ADHD is a leaky bucket — don't trust 'I'll remember'.", source: "Working memory — ADHD"},
+  {text: "Transitions are where attention dissolves. Before finishing a block, write the first sentence of the next action.", source: "Transition management — ADHD"},
+  {text: "Boredom is the enemy of ADHD focus. If a task feels impossible to start, make it a game: timer, playlist, or a bet with yourself.", source: "Motivation — ADHD"},
+  {text: "The afternoon dip (14:00–16:30) is for admin, emails, routine tasks. Save the creative work for when your brain is actually online.", source: "Ultradian rhythm + ADHD"},
+  {text: "Done is better than perfect. Perfectionism is procrastination wearing a suit. Ship the 80% version.", source: "Perfectionism + ADHD"},
+  {text: "Your brain craves novelty. If you've been on one task for 90 minutes, it's not laziness to switch — it's biology. Take a real break.", source: "Hyperfocus management — ADHD"},
+];
+
+function getDailyNudge() {
+  const pf = STATE.profile || {};
+  const flags = pf.flags || [];
+  const hour = new Date().getHours();
+  const mits = getMITs();
+  const mitCount = mits.length;
+  const doneMITs = mits.filter(t => t.status === 'done').length;
+  const allTasks = getAllPendingTasks();
+  const highPriorityCount = allTasks.filter(t => t.priority === 'critical' || t.priority === 'high').length;
+  const peakS = timeToMins(pf.peakStart || '09:00') / 60;
+  const peakE = timeToMins(pf.peakEnd || '12:00') / 60;
+  const dipS  = timeToMins(pf.dipStart || '14:00') / 60;
+  const dipE  = timeToMins(pf.dipEnd || '16:30') / 60;
+
+  // Context-aware nudge selection
+  const nudges = [];
+
+  // Morning — before peak
+  if (hour < peakS) {
+    nudges.push({text: `Peak window opens at ${pf.peakStart||'09:00'}. Decide your 3 MITs now before the day decides for you.`, source: 'Morning prep — ADHD'});
+    nudges.push({text: 'Before opening any app, write down the one thing that would make today a success. Just one.', source: 'Intention setting'});
+  }
+
+  // In peak window
+  if (hour >= peakS && hour < peakE) {
+    if (doneMITs === 0 && mitCount > 0) {
+      nudges.push({text: `You\'re in your peak window right now. Your brain is as sharp as it gets today. Start MIT #1.`, source: 'Peak energy — ADHD'});
+    }
+    nudges.push({text: 'Close every tab that isn\'t your current task. Each notification costs 23 minutes of refocus time.', source: 'Deep work — ADHD'});
+  }
+
+  // Approaching dip
+  if (hour >= peakE && hour < dipS) {
+    nudges.push({text: `Peak is done — good. Wrap up current work, do a quick capture of everything in your head before the dip hits.`, source: 'Post-peak transition'});
+    if (doneMITs < mitCount) {
+      nudges.push({text: `${doneMITs} of ${mitCount} MITs done. Can you close one more before the energy dip?`, source: 'MIT progress'});
+    }
+  }
+
+  // In the dip
+  if (hour >= dipS && hour < dipE) {
+    nudges.push({text: `This is the dip (${pf.dipStart||'14:00'}–${pf.dipEnd||'16:30'}). Don\'t fight biology — do email, admin, or take a real 20-min break.`, source: 'Ultradian rhythm — ADHD'});
+    nudges.push({text: 'A 20-minute nap in the dip is worth 2 hours of forced afternoon productivity. Science says so.', source: 'Rest — ADHD'});
+  }
+
+  // Recovery
+  if (hour >= dipE && hour < dipE + 1.5) {
+    nudges.push({text: 'Recovery window starting. Good for creative work, planning tomorrow, or anything that doesn\'t require peak focus.', source: 'Recovery energy'});
+  }
+
+  // Evening
+  if (hour >= 19) {
+    if (doneMITs === mitCount && mitCount > 0) {
+      nudges.push({text: `All ${mitCount} MITs done today. That\'s a win. Write down tomorrow\'s top task before you shut down.`, source: 'End of day — ADHD'});
+    } else {
+      nudges.push({text: `${doneMITs}/${mitCount} MITs done. What stopped the others? Note it briefly so tomorrow starts smarter.`, source: 'End-of-day review'});
+    }
+    nudges.push({text: 'Set tomorrow\'s first task before bed. Your brain will pre-process it overnight — you\'ll start faster in the morning.', source: 'Sleep + planning — ADHD'});
+  }
+
+  // Profile-based fallbacks
+  if (flags.includes('adhd_inattentive')) {
+    nudges.push({text: 'Time blindness is real. Set a timer before each block — externalize time so your brain doesn\'t have to track it.', source: 'Time blindness — ADHD'});
+    nudges.push({text: 'Write it down the moment it comes up. Working memory in ADHD is a leaky bucket — don\'t trust "I\'ll remember".', source: 'Working memory — ADHD'});
+  }
+  if (flags.includes('procrastinator')) {
+    nudges.push({text: 'Procrastination is usually anxiety in disguise. Which task feels heaviest right now? Do exactly 5 minutes of it.', source: 'Procrastination psychology'});
+    nudges.push({text: 'Done is better than perfect. Perfectionism is procrastination wearing a suit. Ship the 80% version.', source: 'Perfectionism + ADHD'});
+  }
+  if (highPriorityCount > 3) {
+    nudges.push({text: `You have ${highPriorityCount} high-priority tasks queued. Only 3 can be today\'s MITs. The rest exist tomorrow.`, source: 'Priority overload'});
+  }
+
+  // Fallback to static list if somehow nothing matched
+  if (nudges.length === 0) {
+    const dayOfYear = Math.floor((today() - new Date(today().getFullYear(), 0, 0)) / 86400000);
+    return ADHD_NUDGES[dayOfYear % ADHD_NUDGES.length];
+  }
+
+  // Pick from contextual nudges, varying daily so it doesn't repeat every hour
+  const dayOfYear = Math.floor((today() - new Date(today().getFullYear(), 0, 0)) / 86400000);
+  return nudges[dayOfYear % nudges.length];
+}
+
+function getAllPendingTasks() {
+  const tasks = [];
+  const p = STATE.profile;
+  const priorityScore = {critical:4, high:3, medium:2, low:1};
+
+  // From quests
+  STATE.quests.filter(q => !(q.done && q.doneDate === todayKey())).forEach(q => {
+    tasks.push({id:q.id, title:q.title, priority:q.priority, domain:q.tag, source:'quest', xp:q.xp});
+  });
+  // From projects
+  ['biz','garden','nwp'].forEach(pid => {
+    STATE.projects[pid].tasks.filter(t => t.status !== 'done').forEach(t => {
+      tasks.push({id:t.id, title:t.title, priority:t.priority, domain:pid, source:'project'});
+    });
+  });
+  // From life tasks
+  (STATE.lifeTasks || []).filter(t => t.status !== 'done').forEach(t => {
+    tasks.push({id:t.id, title:t.title, priority:t.priority || 'medium', domain:t.domain || 'personal', source:'life'});
+  });
+
+  tasks.sort((a,b) => (priorityScore[b.priority]||1) - (priorityScore[a.priority]||1));
+  return tasks;
+}
+
+function getMITs() {
+  const all = getAllPendingTasks();
+  const mitCount = STATE.profile.mitCount || 3;
+  const critical = all.filter(t => t.priority === 'critical');
+  const high = all.filter(t => t.priority === 'high');
+  const others = all.filter(t => t.priority !== 'critical' && t.priority !== 'high');
+
+  // ADHD rule: ideally include one quick-win (easy/short task) to build momentum
+  const mits = [];
+  critical.slice(0, 2).forEach(t => { if (mits.length < mitCount) mits.push(t); });
+  high.slice(0, 2).forEach(t => { if (mits.length < mitCount) mits.push(t); });
+  if (mits.length < mitCount && others.length) mits.push(others[0]);
+  return mits.slice(0, mitCount);
+}
+
+function renderPlan() {
+  const pf = STATE.profile;
+
+  // ── Profile view ──
+  const flagLabels = {adhd_inattentive:'ADHD — inattentive', procrastinator:'procrastinator', perfectionist:'perfectionist'};
+  const profileView = document.getElementById('plan-profile-view');
+  profileView.innerHTML = `
+    <div class="profile-header">
+      <div style="font-size:15px;font-style:italic">${pf.name || 'You'}</div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.6">
+      ${pf.dailyCapacityHours}h available · deep work max ${pf.deepWorkMins} min · ${pf.mitCount} MITs/day
+    </div>
+    <div class="profile-chips">
+      ${(pf.flags||[]).map(f => `<span class="flag-chip">${flagLabels[f]||f}</span>`).join('')}
+      <span class="energy-badge peak">⚡ Peak ${pf.peakStart}–${pf.peakEnd}</span>
+      <span class="energy-badge dip">😴 Dip ${pf.dipStart}–${pf.dipEnd}</span>
+    </div>`;
+
+  // Populate edit form
+  document.getElementById('pf-name').value = pf.name || '';
+  document.getElementById('pf-peak-start').value = pf.peakStart || '09:00';
+  document.getElementById('pf-peak-end').value = pf.peakEnd || '12:00';
+  document.getElementById('pf-dip-start').value = pf.dipStart || '14:00';
+  document.getElementById('pf-dip-end').value = pf.dipEnd || '16:30';
+  document.getElementById('pf-deepwork').value = String(pf.deepWorkMins || 90);
+  document.getElementById('pf-capacity').value = String(pf.dailyCapacityHours || 6);
+
+  // ── MITs ──
+  const mits = getMITs();
+  const mitList = document.getElementById('mit-list');
+  if (!mits.length) {
+    mitList.innerHTML = '<div style="font-size:12px;color:var(--muted);font-style:italic">All caught up — no pending tasks found.</div>';
+  } else {
+    mitList.innerHTML = mits.map((t, i) => `
+      <div class="mit-item">
+        <div class="mit-num">${i+1}</div>
+        <div class="mit-body">
+          <div class="mit-title">${t.title}</div>
+          <div class="mit-meta">
+            <span class="mit-tag ${t.priority}">${t.priority}</span>
+            <span class="mit-tag ${t.domain}">${t.domain}</span>
+            ${t.xp ? `<span class="mit-tag">+${t.xp} XP</span>` : ''}
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  // ── Energy Map ──
+  const energyMap = document.getElementById('energy-map');
+  const mitTitles = mits.slice(0,2).map(t => t.title.slice(0,35)+'…');
+  energyMap.innerHTML = `
+    <div class="zone-row">
+      <div class="zone-label">${pf.peakStart}</div>
+      <div class="zone-bar rise">🌅 Rising — light start, review yesterday, plan the blocks</div>
+    </div>
+    <div class="zone-row">
+      <div class="zone-label">${timeAdd(pf.peakStart, 45)}</div>
+      <div class="zone-bar peak">⚡ PEAK — deep work · ${mitTitles[0] || 'hardest MIT first'}</div>
+    </div>
+    <div class="zone-row">
+      <div class="zone-label">${timeAdd(pf.peakStart, 45+parseInt(pf.deepWorkMins||90))}</div>
+      <div class="zone-bar peak">⚡ PEAK — deep work · ${mitTitles[1] || 'second priority'}</div>
+    </div>
+    <div class="zone-row">
+      <div class="zone-label">${pf.peakEnd}</div>
+      <div class="zone-bar free">☕ Break + lunch · decompress, walk, no screens ideal</div>
+    </div>
+    <div class="zone-row">
+      <div class="zone-label">${pf.dipStart}</div>
+      <div class="zone-bar dip">😴 DIP — admin, email, easy tasks · protect from hard work</div>
+    </div>
+    <div class="zone-row">
+      <div class="zone-label">${pf.dipEnd}</div>
+      <div class="zone-bar rise">🔄 Recovery — coaching sessions, calls, creative light work</div>
+    </div>`;
+
+  // ── Energy Alignment ──
+  renderEnergyAlignment();
+
+  // ── Week Strip ──
+  const strip = document.getElementById('week-strip');
+  const allTasks = getAllPendingTasks();
+  const loadCount = Math.min(allTasks.length, 21); // rough: spread over ~week
+  const today_ = today();
+  strip.innerHTML = '';
+  const DOW = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  for (let i=0; i<7; i++) {
+    const d = new Date(today_);
+    d.setDate(today_.getDate() - today_.getDay() + i);
+    const isToday = d.toDateString() === today_.toDateString();
+    const isPast = d < today_ && !isToday;
+    // Rough load: weekdays get more tasks
+    const isWeekend = i===0 || i===6;
+    const dotCount = isPast ? 0 : isWeekend ? Math.min(1, Math.floor(loadCount/14)) : Math.min(4, Math.floor(loadCount/5));
+    const dotColors = ['#c8881a','#4db86a','#6ab4c0','#9b8bc0'];
+    const div = document.createElement('div');
+    div.className = `week-day${isToday?' today':''}${isPast?' past':''}`;
+    div.style.background = isToday ? '' : 'var(--card)';
+    div.innerHTML = `
+      <div class="wd-name">${DOW[i]}</div>
+      <div class="wd-num">${d.getDate()}</div>
+      <div class="wd-load">${Array.from({length:dotCount},(_,j)=>`<div class="load-dot" style="background:${dotColors[j%4]}"></div>`).join('')}</div>`;
+    strip.appendChild(div);
+  }
+
+  // ── Daily Nudge ──
+  const nudge = getDailyNudge();
+  document.getElementById('daily-nudge').innerHTML = `
+    <div class="card-title">💡 Today's nudge</div>
+    <div class="nudge-text">"${nudge.text}"</div>
+    <div class="nudge-source">${nudge.source}</div>`;
+}
+
+// ── ENERGY ALIGNMENT: ideal vs actual ──────────────────────
+function renderEnergyAlignment() {
+  const el = document.getElementById('alignment-content');
+  if (!el) return;
+  const pf = STATE.profile || {};
+
+  // Build ideal zones from profile
+  const peakS = pf.peakStart || '09:00';
+  const peakE = pf.peakEnd   || '12:00';
+  const dipS  = pf.dipStart  || '14:00';
+  const dipE  = pf.dipEnd    || '16:30';
+
+  // Build actual session events from the last rendered day shape
+  // We store them in a global when calendar loads
+  const actual = window._lastCalEvents || [];
+
+  // Check if any sessions fall in wrong zones
+  const conflicts = [];
+  actual.forEach(ev => {
+    const t = ev.start || ev.t || '';
+    if (!t) return;
+    const mins = timeToMins(t);
+    const peakSm = timeToMins(peakS), peakEm = timeToMins(peakE);
+    const dipSm  = timeToMins(dipS),  dipEm  = timeToMins(dipE);
+    const durationH = ev.duration || 1;
+
+    // Session in peak window = energy cost
+    if (mins >= peakSm && mins < peakEm) {
+      conflicts.push({type:'peak-cost', t, title: ev.title || 'Session',
+        msg: `"${(ev.title||'Session').slice(0,30)}" at ${t} is in your peak window — this costs deep-work time.`,
+        advice: `If possible, move to ${dipE} or later (recovery zone) where social energy is still available.`,
+        severity: 'warn'});
+    }
+    // Session in dip = fine, but flag if it's very long
+    if (mins >= dipSm && mins < dipEm && durationH >= 2) {
+      conflicts.push({type:'long-dip', t, title: ev.title||'Session',
+        msg: `${durationH}h session in your dip window (${dipS}–${dipE}) may feel draining.`,
+        advice: 'Take a 5-min break mid-session. Prepare notes beforehand so you can run on autopilot.',
+        severity: 'info'});
+    }
+  });
+
+  // Build visual comparison
+  const hours = [];
+  for (let h=7; h<=21; h++) hours.push(h);
+
+  const idealColor = h => {
+    const m = h * 60;
+    const pS=timeToMins(peakS), pE=timeToMins(peakE), dS=timeToMins(dipS), dE=timeToMins(dipE);
+    if (m >= pS-60 && m < pS) return '#b5c84a';
+    if (m >= pS && m < pE)    return '#e8a820';
+    if (m >= pE && m < dS)    return '#8ab890';
+    if (m >= dS && m < dE)    return '#8a7a9a';
+    if (m >= dE && m < dE+90) return '#4db86a';
+    return '#c8b89a';
+  };
+
+  const actualColor = h => {
+    // If a session is at this hour, use a "booked" color; compare to ideal
+    const m = h * 60;
+    const pS=timeToMins(peakS), pE=timeToMins(peakE);
+    const dS=timeToMins(dipS),  dE=timeToMins(dipE);
+    const booked = actual.some(ev => {
+      const em = timeToMins(ev.start || ev.t || '00:00');
+      return m >= em && m < em + 60;
+    });
+    if (!booked) return idealColor(h); // no session — same as ideal
+    // Session is booked — show conflict if it's in peak
+    if (m >= pS && m < pE) return '#e05c40'; // red — session eating peak
+    if (m >= dS && m < dE) return '#9b8bc0'; // soft purple — session in dip (ok)
+    return '#5a8a9a'; // teal — session in recovery/neutral
+  };
+
+  const noData = actual.length === 0;
+
+  let html = `
+    <div style="display:flex;gap:8px;margin-bottom:10px;font-size:10px;color:var(--muted);font-family:monospace">
+      <span>07:00</span><span style="flex:1"></span><span>14:00</span><span style="flex:1"></span><span>21:00</span>
+    </div>
+    <div style="margin-bottom:6px;font-size:10px;color:var(--muted)">Ideal →</div>
+    <div style="display:flex;gap:1px;height:18px;border-radius:6px;overflow:hidden;margin-bottom:10px">
+      ${hours.map(h=>`<div style="flex:1;background:${idealColor(h)};height:100%"></div>`).join('')}
+    </div>`;
+
+  if (noData) {
+    html += `<div style="font-size:11px;color:var(--muted);font-style:italic">Actual schedule will appear here once calendar loads on the Home tab.</div>`;
+  } else {
+    html += `
+    <div style="margin-bottom:6px;font-size:10px;color:var(--muted)">Actual →</div>
+    <div style="display:flex;gap:1px;height:18px;border-radius:6px;overflow:hidden;margin-bottom:12px">
+      ${hours.map(h=>`<div style="flex:1;background:${actualColor(h)};height:100%"></div>`).join('')}
+    </div>`;
+
+    if (conflicts.length === 0) {
+      html += `<div style="font-size:12px;color:var(--leaf);font-family:monospace">✓ Alignment looks good — your schedule respects your energy zones today.</div>`;
+    } else {
+      html += conflicts.map(c => `
+        <div style="margin-bottom:10px;padding:8px 10px;border-radius:6px;background:${c.severity==='warn'?'rgba(224,92,64,0.1)':'rgba(155,139,192,0.1)'};border-left:3px solid ${c.severity==='warn'?'#e05c40':'#9b8bc0'}">
+          <div style="font-size:11px;font-weight:600;color:var(--forest);margin-bottom:3px">${c.severity==='warn'?'⚠️':'ℹ️'} ${c.msg}</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.5">${c.advice}</div>
+        </div>`).join('');
+    }
+  }
+
+  // Legend
+  html += `
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+      <span style="font-size:10px;color:var(--muted)"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#e8a820;vertical-align:middle"></span> Peak</span>
+      <span style="font-size:10px;color:var(--muted)"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#8a7a9a;vertical-align:middle"></span> Dip</span>
+      <span style="font-size:10px;color:var(--muted)"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#4db86a;vertical-align:middle"></span> Recovery</span>
+      <span style="font-size:10px;color:var(--muted)"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#e05c40;vertical-align:middle"></span> Session in peak ⚠️</span>
+    </div>`;
+
+  el.innerHTML = html;
+}
+
+function timeAdd(timeStr, minutesToAdd) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const total = h * 60 + m + minutesToAdd;
+  const nh = Math.floor(total / 60) % 24;
+  const nm = total % 60;
+  return `${String(nh).padStart(2,'0')}:${String(nm).padStart(2,'0')}`;
+}
+
+function toggleProfileEdit() {
+  const form = document.getElementById('profile-edit-form');
+  const card = document.getElementById('profile-view-card');
+  const btn = document.getElementById('profile-edit-btn');
+  const isEditing = form.style.display !== 'none';
+  form.style.display = isEditing ? 'none' : 'block';
+  card.style.display = isEditing ? 'block' : 'none';
+  btn.textContent = isEditing ? 'Edit' : 'Cancel';
+}
+
+function saveProfile() {
+  if (!STATE.profile) STATE.profile = {};
+  STATE.profile.name = document.getElementById('pf-name').value;
+  STATE.profile.peakStart = document.getElementById('pf-peak-start').value;
+  STATE.profile.peakEnd = document.getElementById('pf-peak-end').value;
+  STATE.profile.dipStart = document.getElementById('pf-dip-start').value;
+  STATE.profile.dipEnd = document.getElementById('pf-dip-end').value;
+  STATE.profile.deepWorkMins = parseInt(document.getElementById('pf-deepwork').value);
+  STATE.profile.dailyCapacityHours = parseInt(document.getElementById('pf-capacity').value);
+  saveState();
+  toggleProfileEdit();
+  renderPlan();
 }
 
 // ══════════════════════════════════════════════
