@@ -677,6 +677,25 @@ const DEFAULT_DATA = {
         {id:'n6', title:'Write NWP philosophy summary document', priority:'medium', status:'todo', phase:'Philosophy'},
         {id:'n7', title:'Sketch the city-builder game concept', priority:'low', status:'todo', phase:'Games'},
       ]
+   },
+   {id:'appdev', title:'App Development', icon:'🖥️', color:'#7a5ca0', description:'CODEX PWA · PT Translator · Supabase · GitHub Pages', tasks: [
+        {id:'ad1', title:'Build CODEX PWA — solarpunk UI, navigation, all pages', priority:'critical', status:'done', phase:'CODEX v1'},
+        {id:'ad2', title:'Supabase Edge Function + live Google Calendar integration', priority:'critical', status:'done', phase:'CODEX v1'},
+        {id:'ad3', title:'Intelligent Plan page — MITs, energy map, alignment, nudge', priority:'high', status:'done', phase:'CODEX v1'},
+        {id:'ad4', title:'Dynamic projects system — kanban + gantt for all projects', priority:'high', status:'done', phase:'CODEX v1'},
+        {id:'ad5', title:'Today\'s Focus — MITs pulled from project tasks, synced everywhere', priority:'high', status:'done', phase:'CODEX v1'},
+        {id:'ad6', title:'Calendar energy advice blocks in time gaps', priority:'medium', status:'done', phase:'CODEX v1'},
+        {id:'ad7', title:'Fix Plan page navigation (structural HTML fix)', priority:'critical', status:'done', phase:'CODEX v1'},
+        {id:'ad8', title:'Deploy CODEX v1.4 to GitHub Pages', priority:'high', status:'done', phase:'CODEX v1'},
+        {id:'ad9', title:'Build PT Translator — PT-PT, phonetics, grammar breakdown', priority:'high', status:'done', phase:'PT Translator'},
+        {id:'ad10', title:'Supabase translate Edge Function + ANTHROPIC_API_KEY secret', priority:'high', status:'done', phase:'PT Translator'},
+        {id:'ad11', title:'Deploy PT Translator to GitHub Pages (cmartwise.github.io/pt-translator)', priority:'high', status:'done', phase:'PT Translator'},
+        {id:'ad12', title:'Redeploy calendar Edge Function — 3-case timezone fix', priority:'critical', status:'todo', phase:'CODEX v2'},
+        {id:'ad13', title:'Build girlfriend\'s personalised CODEX — requirements session', priority:'high', status:'todo', phase:'Student CODEX'},
+        {id:'ad14', title:'Profile onboarding wizard — first-run flow', priority:'medium', status:'todo', phase:'CODEX v2'},
+        {id:'ad15', title:'AI Assistant suite — Notion-connected per domain', priority:'medium', status:'todo', phase:'CODEX v2'},
+        {id:'ad16', title:'Smart context-aware daily nudges', priority:'low', status:'todo', phase:'CODEX v2'},
+      ]
    }
   ],
   personal: [
@@ -738,6 +757,27 @@ function migrateState(s) {
       {id:'pl4', title:'Eat fresher — more vegetables, less processed', priority:'low', status:'todo', phase:'Health'},
       {id:'pl5', title:'Build consistent sleep schedule (up by 08:00)', priority:'medium', status:'todo', phase:'Health'},
       {id:'pl6', title:'Vacuum + bathroom clean (Monday & Tuesday)', priority:'low', status:'todo', phase:'Home'},
+    ]});
+  }
+  // Add App Development project if missing
+  if (!s.projects.find(p => p.id === 'appdev')) {
+    s.projects.push({id:'appdev', title:'App Development', icon:'🖥️', color:'#7a5ca0', description:'CODEX PWA · PT Translator · Supabase · GitHub Pages', tasks: [
+      {id:'ad1', title:'Build CODEX PWA — solarpunk UI, navigation, all pages', priority:'critical', status:'done', phase:'CODEX v1'},
+      {id:'ad2', title:'Supabase Edge Function + live Google Calendar integration', priority:'critical', status:'done', phase:'CODEX v1'},
+      {id:'ad3', title:'Intelligent Plan page — MITs, energy map, alignment, nudge', priority:'high', status:'done', phase:'CODEX v1'},
+      {id:'ad4', title:'Dynamic projects system — kanban + gantt for all projects', priority:'high', status:'done', phase:'CODEX v1'},
+      {id:'ad5', title:'Today\'s Focus — MITs pulled from project tasks, synced everywhere', priority:'high', status:'done', phase:'CODEX v1'},
+      {id:'ad6', title:'Calendar energy advice blocks in time gaps', priority:'medium', status:'done', phase:'CODEX v1'},
+      {id:'ad7', title:'Fix Plan page navigation (structural HTML fix)', priority:'critical', status:'done', phase:'CODEX v1'},
+      {id:'ad8', title:'Deploy CODEX v1.4 to GitHub Pages', priority:'high', status:'done', phase:'CODEX v1'},
+      {id:'ad9', title:'Build PT Translator — PT-PT, phonetics, grammar breakdown', priority:'high', status:'done', phase:'PT Translator'},
+      {id:'ad10', title:'Supabase translate Edge Function + ANTHROPIC_API_KEY secret', priority:'high', status:'done', phase:'PT Translator'},
+      {id:'ad11', title:'Deploy PT Translator to GitHub Pages', priority:'high', status:'done', phase:'PT Translator'},
+      {id:'ad12', title:'Redeploy calendar Edge Function — 3-case timezone fix', priority:'critical', status:'todo', phase:'CODEX v2'},
+      {id:'ad13', title:'Build girlfriend\'s personalised CODEX — requirements session', priority:'high', status:'todo', phase:'Student CODEX'},
+      {id:'ad14', title:'Profile onboarding wizard — first-run flow', priority:'medium', status:'todo', phase:'CODEX v2'},
+      {id:'ad15', title:'AI Assistant suite — Notion-connected per domain', priority:'medium', status:'todo', phase:'CODEX v2'},
+      {id:'ad16', title:'Smart context-aware daily nudges', priority:'low', status:'todo', phase:'CODEX v2'},
     ]});
   }
   return s;
