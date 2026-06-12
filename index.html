@@ -2202,35 +2202,39 @@ function renderEnergyMapChart(el, mits) {
     </div>`;
 }
 
-// ── ENERGY ALIGNMENT: mountain chart (ideal curve + event overlay) ────
+// ── ENERGY ALIGNMENT ─────────────────────────────────────────
+// Mountain chart: ideal energy curve (amber area) + events clipped to same shape
+// Coaching + meals are FIXED — never suggested for rescheduling
 function renderEnergyAlignment() {
   const el = document.getElementById('alignment-content');
   if (!el) return;
   const pf = STATE.profile || {};
-  const peakS = pf.peakStart || '09:00', peakE = pf.peakEnd || '12:00';
-  const dipS  = pf.dipStart  || '14:00', dipE  = pf.dipEnd  || '16:30';
-  const pSm = timeToMins(peakS), pEm = timeToMins(peakE);
-  const dSm = timeToMins(dipS),  dEm = timeToMins(dipE);
+  const peakS = pf.peakStart||'09:00', peakE = pf.peakEnd||'12:00';
+  const dipS  = pf.dipStart ||'14:00', dipE  = pf.dipEnd ||'16:30';
+  const pSm=timeToMins(peakS), pEm=timeToMins(peakE);
+  const dSm=timeToMins(dipS),  dEm=timeToMins(dipE);
   const actual = window._lastCalEvents || [];
 
+  const FIXED = ['meal','coaching']; // never flag these
+
   function zoneName(m) {
-    if (m >= pSm-60 && m < pSm) return 'rising';
-    if (m >= pSm && m < pEm)    return 'peak';
-    if (m >= pEm && m < dSm)    return 'post-peak';
-    if (m >= dSm && m < dEm)    return 'dip';
-    if (m >= dEm && m < dEm+90) return 'recovery';
+    if (m>=pSm-60&&m<pSm) return 'rising';
+    if (m>=pSm&&m<pEm)    return 'peak';
+    if (m>=pEm&&m<dSm)    return 'post-peak';
+    if (m>=dSm&&m<dEm)    return 'dip';
+    if (m>=dEm&&m<dEm+90) return 'recovery';
     return 'evening';
   }
 
-  // ── SVG mountain chart ──────────────────────────────────
-  const SH = 7, EH = 21, W = 300, CH = 52;
-  const pH = pSm/60, pEH = pEm/60, dH = dSm/60, dEH = dEm/60;
+  // Chart dimensions — compact to match card width
+  const SH=7, EH=21, W=300, CH=38;
+  const pH=pSm/60, pEH=pEm/60, dH=dSm/60, dEH=dEm/60;
   const xh = h => ((Math.max(SH,Math.min(EH,h))-SH)/(EH-SH)*W);
   const xm = m => xh(m/60);
   const ye = e => CH - Math.max(0,Math.min(100,e))/100*CH;
 
   // Energy curve key points [hour, energy%]
-  const pts = [
+  const rawPts = [
     [SH,8],[SH+.5,14],[pH-1.5,46],[pH-.3,78],
     [pH+(pEH-pH)*.4,100],[pH+(pEH-pH)*.75,96],
     [pEH,79],[pEH+.7,60],[(pEH+dH)/2,50],[dH-.3,38],
@@ -2238,127 +2242,111 @@ function renderEnergyAlignment() {
     [dEH+2.5,58],[dEH+3.5,40],[EH-1,22],[EH,10],
   ].map(([h,e])=>[xh(h),ye(e)]);
 
+  // Spline: X control points locked within each segment — PREVENTS backward curves
   function spline(pts) {
-    let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+    let d=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
     for (let i=0;i<pts.length-1;i++) {
-      const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
-      const t=.18;
-      d+=` C${(p1[0]+(p2[0]-p0[0])*t).toFixed(1)},${(p1[1]+(p2[1]-p0[1])*t).toFixed(1)} ${(p2[0]-(p3[0]-p1[0])*t).toFixed(1)},${(p2[1]-(p3[1]-p1[1])*t).toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+      const p0=pts[Math.max(0,i-1)], p1=pts[i], p2=pts[i+1], p3=pts[Math.min(pts.length-1,i+2)];
+      const dx=p2[0]-p1[0];
+      const cp1x=(p1[0]+dx*0.35).toFixed(1); // always strictly between p1.x and p2.x
+      const cp2x=(p2[0]-dx*0.35).toFixed(1);
+      const t=0.2;
+      const cp1y=(p1[1]+(p2[1]-p0[1])*t).toFixed(1);
+      const cp2y=(p2[1]-(p3[1]-p1[1])*t).toFixed(1);
+      d+=` C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
     }
     return d;
   }
 
-  const line = spline(pts);
+  const line = spline(rawPts);
   const area = `${line} L${W},${CH} L0,${CH} Z`;
 
-  // ── Event blocks overlaid on the curve ──────────────────
-  const FIXED = ['meal'];
+  // Compute events and conflicts
   const conflicts = [];
+  const blocks = [];
+  actual.filter(ev=>!ev.allDay).forEach(ev => {
+    const sm=timeToMins(ev.start||'00:00');
+    const em=ev.end?timeToMins(ev.end):sm+60;
+    const cat=classifyEvent(ev.title||'');
+    const zone=zoneName(sm);
+    const isFixed=FIXED.includes(cat);
+    const isConflict=zone==='peak'&&!isFixed;
 
-  const eventBlocks = actual.filter(ev=>!ev.allDay).map(ev => {
-    const sm = timeToMins(ev.start||'00:00');
-    const em = ev.end ? timeToMins(ev.end) : sm+60;
-    const cat = classifyEvent(ev.title||'');
-    const zone = zoneName(sm);
-    const isConflict = zone==='peak' && !FIXED.includes(cat);
-
-    // Conflict cards
     if (isConflict) {
-      const bestAlt = cat==='chores'?`${dipS} (dip zone)`:cat==='exercise'?`${dipE} (post-dip)`:dipE+' onwards';
-      conflicts.push({severity:'warn', title:`"${(ev.title||'Event').slice(0,30)}" in peak (${peakS}–${peakE})`,
-        why:'Your peak is your scarcest cognitive resource. Every non-deep-work event here costs you your best thinking.',
-        fix:`Move to ${bestAlt} — flexible work fits there and frees your peak for the tasks only your best self can do.`});
-    } else if (zone==='dip' && cat==='coaching') {
-      conflicts.push({severity:'info', title:`Coaching in dip (${dipS}–${dipE})`,
-        why:'Your dip lowers verbal fluency and reaction time slightly — sessions feel heavier.',
-        fix:'Workable with prep: write your session notes beforehand so you can coast on structure rather than sharp thinking.'});
+      const alt=cat==='chores'?`${dipS} (dip — admin fits perfectly)`
+               :cat==='exercise'?`${dipE} (post-dip walk = natural reset)`
+               :`${dipE} or later`;
+      conflicts.push({
+        title:`"${(ev.title||'Event').slice(0,32)}" is in your peak (${peakS}–${peakE})`,
+        why:'Peak is your scarcest window for deep thinking. Non-essential events here trade your sharpest hours for tasks that could run anywhere.',
+        fix:`Consider moving to ${alt}, freeing this slot for your most important work.`
+      });
     }
 
-    // Block color
-    let fill, op=.55;
-    if (isConflict)      { fill='#e02818'; op=.75; }
-    else if(cat==='meal'){ fill='#48b055'; }
-    else if(cat==='exercise'){fill='#18a0b0';}
-    else if(cat==='coaching'){fill='#c8881a';}
-    else                 { fill='#5870a0'; op=.4; }
+    let fill;
+    if (isConflict)           fill='#e02818';
+    else if (cat==='meal')    fill='#48b055';
+    else if (cat==='exercise')fill='#18a0b0';
+    else if (cat==='coaching')fill='#c8881a';
+    else                      fill='#5870a0';
 
-    const x1=xm(Math.max(SH*60,sm)), x2=xm(Math.min(EH*60,em));
-    const w=Math.max(.8,x2-x1);
-    const warningMark = isConflict ? `<text x="${(x1+w/2).toFixed(1)}" y="8" font-size="7" text-anchor="middle" fill="#e02818" font-weight="bold">⚠</text>` : '';
-    return `<rect x="${x1.toFixed(1)}" y="0" width="${w.toFixed(1)}" height="${CH}" fill="${fill}" opacity="${op}" rx="1.5"/>${warningMark}`;
-  }).join('');
+    const bx=xm(Math.max(SH*60,sm));
+    const bw=Math.max(1, xm(Math.min(EH*60,em))-bx);
+    blocks.push({bx,bw,fill,isConflict});
+  });
 
-  // ── Time ticks every 2h ──────────────────────────────────
-  const ticks = [];
-  for (let h=SH;h<=EH;h+=2) ticks.push(h);
+  // Time ticks every 2h
+  const ticks=[];
+  for(let h=SH;h<=EH;h+=2) ticks.push(h);
 
-  // ── Render ───────────────────────────────────────────────
-  const noData = actual.length === 0;
-  const nowH = new Date().getHours()+new Date().getMinutes()/60;
-  const inRange = nowH>=SH && nowH<=EH;
-  const nowX = xh(nowH);
+  const noData=actual.length===0;
+  const nowH=new Date().getHours()+new Date().getMinutes()/60;
+  const inRange=nowH>=SH&&nowH<=EH;
 
-  let html = `
-    <div style="font-size:10px;color:var(--muted);font-family:monospace;margin-bottom:6px;line-height:1.5">
-      <span style="color:var(--forest);font-weight:600">Ideal curve</span> = your biology (peak ${peakS}–${peakE}, dip ${dipS}–${dipE}) ·
-      <span style="color:var(--forest);font-weight:600">Coloured blocks</span> = today's events
-    </div>
-    <svg viewBox="0 0 ${W} ${CH+18}" width="100%" style="display:block;overflow:visible">
-      <defs>
-        <linearGradient id="al-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stop-color="#e89c00" stop-opacity=".55"/>
-          <stop offset="45%"  stop-color="#b8d432" stop-opacity=".32"/>
-          <stop offset="100%" stop-color="#7090b0" stop-opacity=".12"/>
-        </linearGradient>
-      </defs>
-      <!-- Faint grid -->
-      <line x1="0" y1="${ye(50).toFixed(1)}" x2="${W}" y2="${ye(50).toFixed(1)}" stroke="rgba(255,255,255,.06)" stroke-width=".5" stroke-dasharray="3,5"/>
-      <!-- Ideal mountain area -->
-      <path d="${area}" fill="url(#al-fill)"/>
-      <!-- Event blocks overlaid -->
-      ${noData ? '' : eventBlocks}
-      <!-- Ideal curve stroke (drawn on top of blocks so shape is always clear) -->
-      <path d="${line}" fill="none" stroke="#e89c00" stroke-width="1.5" stroke-opacity=".9" stroke-linecap="round" stroke-linejoin="round"/>
-      <!-- Now indicator -->
-      ${inRange?`<line x1="${nowX.toFixed(1)}" y1="0" x2="${nowX.toFixed(1)}" y2="${CH}" stroke="rgba(255,255,255,.5)" stroke-width=".8" stroke-dasharray="2,3"/>
-      <circle cx="${nowX.toFixed(1)}" cy="${ye(50).toFixed(1)}" r="2.5" fill="#fff" stroke="#e89c00" stroke-width="1.2"/>`:''}
-      <!-- Zone labels at curve peaks/troughs -->
-      <text x="${xh((pH+pEH)/2).toFixed(1)}" y="${(ye(100)-4).toFixed(1)}" font-size="5.5" fill="rgba(232,156,0,.9)" text-anchor="middle" font-family="monospace">PEAK</text>
-      <text x="${xh((dH+dEH)/2).toFixed(1)}" y="${(ye(20)-3).toFixed(1)}" font-size="5.5" fill="rgba(112,144,176,.9)" text-anchor="middle" font-family="monospace">DIP</text>
-      <!-- Time axis -->
-      ${ticks.map(h=>`<text x="${xh(h).toFixed(1)}" y="${(CH+12).toFixed(1)}" font-size="5" fill="rgba(255,255,255,.3)" text-anchor="middle" font-family="monospace">${String(h).padStart(2,'0')}</text>`).join('')}
-      <!-- Profile key ticks -->
-      ${[pH,pEH,dH,dEH].map(h=>`<line x1="${xh(h).toFixed(1)}" y1="${CH}" x2="${xh(h).toFixed(1)}" y2="${CH+5}" stroke="rgba(255,255,255,.28)" stroke-width=".8"/>`).join('')}
-    </svg>`;
+  // Build SVG
+  const svg = `<svg viewBox="0 0 ${W} ${CH+14}" width="100%" style="display:block;overflow:visible;margin-bottom:6px">
+    <defs>
+      <clipPath id="alcurve">
+        <path d="${area}"/>
+      </clipPath>
+      <linearGradient id="algrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#e89c00" stop-opacity=".48"/>
+        <stop offset="100%" stop-color="#e89c00" stop-opacity=".06"/>
+      </linearGradient>
+    </defs>
+    <line x1="0" y1="${ye(50).toFixed(1)}" x2="${W}" y2="${ye(50).toFixed(1)}" stroke="rgba(255,255,255,.05)" stroke-width=".5" stroke-dasharray="3,5"/>
+    <path d="${area}" fill="url(#algrad)"/>
+    ${noData?'':blocks.map(b=>`<rect x="${b.bx.toFixed(1)}" y="0" width="${b.bw.toFixed(1)}" height="${CH}" fill="${b.fill}" opacity=".62" clip-path="url(#alcurve)"/>`).join('')}
+    <path d="${line}" fill="none" stroke="#e89c00" stroke-width="1.4" stroke-opacity=".95" stroke-linecap="round" stroke-linejoin="round"/>
+    ${blocks.filter(b=>b.isConflict).map(b=>`<text x="${(b.bx+b.bw/2).toFixed(1)}" y="${(ye(95)).toFixed(1)}" font-size="7" text-anchor="middle" fill="#e02818" font-weight="bold">⚠</text>`).join('')}
+    ${inRange?`<line x1="${xh(nowH).toFixed(1)}" y1="0" x2="${xh(nowH).toFixed(1)}" y2="${CH}" stroke="rgba(255,255,255,.38)" stroke-width=".8" stroke-dasharray="2,3"/>`:``}
+    <line x1="0" y1="${CH}" x2="${W}" y2="${CH}" stroke="rgba(255,255,255,.08)" stroke-width=".5"/>
+    ${ticks.map(h=>`<text x="${xh(h).toFixed(1)}" y="${(CH+11).toFixed(1)}" font-size="6.5" fill="rgba(255,255,255,.38)" text-anchor="middle" font-family="monospace">${String(h).padStart(2,'0')}</text>`).join('')}
+    ${[pH,pEH,dH,dEH].map(h=>`<line x1="${xh(h).toFixed(1)}" y1="${CH}" x2="${xh(h).toFixed(1)}" y2="${CH+4}" stroke="rgba(255,255,255,.25)" stroke-width=".8"/>`).join('')}
+    <text x="${xh((pH+pEH)/2).toFixed(1)}" y="${Math.max(7,ye(100)-2).toFixed(1)}" font-size="6" fill="rgba(232,156,0,.8)" text-anchor="middle" font-family="monospace">PEAK</text>
+    <text x="${xh((dH+dEH)/2).toFixed(1)}" y="${(ye(20)+8).toFixed(1)}" font-size="6" fill="rgba(112,144,176,.8)" text-anchor="middle" font-family="monospace">DIP</text>
+  </svg>`;
 
-  // ── Compact colour key ────────────────────────────────────
-  html += `
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;margin-bottom:${conflicts.length?'10px':'0'}">
-      ${[
-        {c:'#e89c00',l:'Ideal curve'},
-        {c:'#e02818',l:'⚠ Conflict'},
-        {c:'#c8881a',l:'Coaching'},
-        {c:'#48b055',l:'Meal'},
-        {c:'#18a0b0',l:'Exercise'},
-        {c:'#5870a0',l:'Other'},
-      ].map(x=>`<span style="display:flex;align-items:center;gap:3px;font-size:9px;color:var(--muted);font-family:monospace"><span style="width:8px;height:8px;border-radius:2px;background:${x.c};display:inline-block;flex-shrink:0"></span>${x.l}</span>`).join('')}
-    </div>`;
+  const key = `<div style="display:flex;flex-wrap:wrap;gap:5px 10px;margin-bottom:${conflicts.length?'10px':'0'}">
+    ${[{c:'#e89c00',l:'Ideal'},{c:'#e02818',l:'⚠ Conflict'},{c:'#c8881a',l:'Coaching'},{c:'#48b055',l:'Meal'},{c:'#18a0b0',l:'Exercise'},{c:'#5870a0',l:'Other'}]
+      .map(x=>`<span style="display:flex;align-items:center;gap:3px;font-size:9px;color:var(--muted);font-family:monospace"><span style="width:8px;height:8px;border-radius:2px;background:${x.c};display:inline-block"></span>${x.l}</span>`).join('')}
+  </div>`;
 
-  // ── Conflict cards ────────────────────────────────────────
+  let cards='';
   if (noData) {
-    html += `<div style="font-size:11px;color:var(--muted);font-style:italic">Calendar loads after you open Today tab.</div>`;
-  } else if (conflicts.length===0) {
-    html += `<div style="font-size:11px;color:var(--leaf);font-family:monospace">✓ Good alignment — schedule respects your energy zones.</div>`;
+    cards=`<div style="font-size:11px;color:var(--muted);font-style:italic">Loads after visiting Today tab.</div>`;
+  } else if (!conflicts.length) {
+    cards=`<div style="font-size:11px;color:var(--leaf);font-family:monospace">✓ Schedule fits your energy zones.</div>`;
   } else {
-    html += conflicts.map(c=>`
-      <div style="margin-bottom:8px;padding:8px 10px;border-radius:7px;background:${c.severity==='warn'?'rgba(224,40,24,.07)':'rgba(112,144,176,.07)'};border-left:3px solid ${c.severity==='warn'?'#e02818':'#7090b0'}">
-        <div style="font-size:11px;font-weight:600;color:var(--forest);margin-bottom:3px">${c.severity==='warn'?'⚠️':'ℹ️'} ${c.title}</div>
-        <div style="font-size:10px;color:var(--muted);line-height:1.5;margin-bottom:3px"><strong>Why it matters:</strong> ${c.why}</div>
-        <div style="font-size:10px;color:var(--muted);line-height:1.5"><strong>Suggestion:</strong> ${c.fix}</div>
+    cards=conflicts.map(c=>`
+      <div style="margin-bottom:8px;padding:8px 10px;border-radius:7px;background:rgba(224,40,24,.07);border-left:3px solid #e02818">
+        <div style="font-size:11px;font-weight:600;color:var(--forest);margin-bottom:3px">⚠️ ${c.title}</div>
+        <div style="font-size:10px;color:var(--muted);line-height:1.5;margin-bottom:2px"><em>Why:</em> ${c.why}</div>
+        <div style="font-size:10px;color:var(--muted);line-height:1.5"><em>Try:</em> ${c.fix}</div>
       </div>`).join('');
   }
 
-  el.innerHTML = html;
+  el.innerHTML = svg + key + cards;
 }
 
 function timeAdd(timeStr, minutesToAdd) {
