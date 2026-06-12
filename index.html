@@ -322,10 +322,43 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
   flex:1;border-radius:var(--radius-sm);padding:8px 10px;
   font-size:11px;line-height:1.4;
 }
-.zone-bar.peak{background:var(--gold-bg);border:1px solid var(--gold-border);color:var(--gold)}
-.zone-bar.rise{background:var(--leaf-bg);border:1px solid var(--leaf-border);color:var(--forest2)}
-.zone-bar.dip{background:var(--earth-bg);border:1px solid rgba(122,78,42,.15);color:var(--muted);font-style:italic}
+.zone-bar.peak{background:rgba(232,156,0,.13);border:1px solid rgba(232,156,0,.35);color:#c07800}
+.zone-bar.rise{background:rgba(184,212,50,.12);border:1px solid rgba(184,212,50,.38);color:#5a7a00}
+.zone-bar.dip{background:rgba(112,144,176,.11);border:1px solid rgba(112,144,176,.28);color:var(--muted);font-style:italic}
+.zone-bar.recovery{background:rgba(24,168,144,.11);border:1px solid rgba(24,168,144,.28);color:#108878}
 .zone-bar.free{background:var(--card);border:1px dashed var(--border);color:var(--muted)}
+/* ── Info modal (bottom sheet) ─────────────────────── */
+.info-modal{position:fixed;inset:0;z-index:999;display:flex;align-items:flex-end;pointer-events:none;opacity:0;transition:opacity .2s}
+.info-modal.open{opacity:1;pointer-events:all}
+.info-modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.5);cursor:pointer}
+.info-modal-sheet{position:relative;z-index:1;background:var(--bg);border-radius:16px 16px 0 0;padding:20px 16px 36px;max-height:82vh;overflow-y:auto;width:100%;transform:translateY(100%);transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.info-modal.open .info-modal-sheet{transform:translateY(0)}
+.info-modal-title{font-size:13px;font-weight:700;color:var(--forest);margin-bottom:12px;font-family:monospace;letter-spacing:1px;text-transform:uppercase;padding-right:36px}
+.info-close{position:absolute;top:16px;right:16px;background:var(--surface);border:none;color:var(--muted);border-radius:50%;width:28px;height:28px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.info-btn{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:0 3px 0 6px;opacity:.6;vertical-align:middle;line-height:1}
+.info-btn:hover{opacity:1}
+.info-zone-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.info-zone-row:last-child{border-bottom:none}
+.info-zone-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;margin-top:3px}
+/* ── AI chat page ──────────────────────────────────── */
+.ai-chat{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow-y:auto;padding:2px 0;margin-bottom:10px}
+.ai-msg{padding:9px 12px;border-radius:12px;font-size:12px;line-height:1.6;max-width:90%;word-break:break-word}
+.ai-msg.user{background:var(--forest);color:#e8f0e2;align-self:flex-end;border-radius:12px 12px 2px 12px}
+.ai-msg.assistant{background:var(--card);color:var(--text);align-self:flex-start;border-radius:12px 12px 12px 2px;border:1px solid var(--border)}
+.ai-msg.system-note{background:transparent;color:var(--muted);font-style:italic;font-size:10px;align-self:center;text-align:center;max-width:100%}
+.ai-msg.action-done{background:rgba(24,168,144,.1);border:1px solid rgba(24,168,144,.28);color:#108878;font-family:monospace;font-size:10px;align-self:flex-start;max-width:100%;width:100%;border-radius:8px}
+.ai-thinking{display:flex;gap:5px;align-items:center;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:12px;align-self:flex-start}
+.ai-thinking span{width:7px;height:7px;border-radius:50%;background:var(--forest);animation:ai-pulse 1.2s ease-in-out infinite}
+.ai-thinking span:nth-child(2){animation-delay:.2s}
+.ai-thinking span:nth-child(3){animation-delay:.4s}
+@keyframes ai-pulse{0%,100%{opacity:.25;transform:scale(.9)}50%{opacity:1;transform:scale(1.1)}}
+.ai-input-row{display:flex;gap:6px;align-items:flex-end}
+.ai-input-row textarea{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:12px;color:var(--text);resize:none;font-family:inherit;line-height:1.5;min-height:42px;max-height:110px;overflow-y:auto}
+.ai-input-row textarea:focus{outline:none;border-color:var(--forest)}
+.ai-send-btn{background:var(--forest);color:#e8f0e2;border:none;border-radius:12px;padding:0 14px;font-size:18px;cursor:pointer;height:42px;flex-shrink:0;font-weight:700}
+.ai-send-btn:disabled{opacity:.35;cursor:default}
+.ai-chip{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:10px;color:var(--forest);cursor:pointer;white-space:nowrap;font-family:monospace}
+.ai-chip:hover{background:var(--card)}
 .week-strip{display:flex;gap:4px;margin-top:8px}
 .week-day{
   flex:1;text-align:center;border-radius:var(--radius-sm);
@@ -473,34 +506,35 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
 
   <!-- ══ AI ASSISTANT ══ -->
   <div class="page" id="page-ai">
-    <div class="sec">Context Snapshot</div>
-    <div class="ai-context" id="ai-context-box">
-      <span class="ctx-label">CODEX // AUTO-BRIEFING</span>
-      <span id="ai-ctx-text">Generating...</span>
+    <div class="sec" style="display:flex;justify-content:space-between;align-items:center">
+      <span>🤖 AI Assistant</span>
+      <button class="inline-btn" onclick="toggleAiContext()" id="ai-ctx-toggle">Context ▾</button>
     </div>
 
-    <div class="sec">Ask Claude</div>
-    <button class="ai-btn primary" onclick="openClaude('focus')">
-      <span class="ai-btn-icon">🎯</span> What should I focus on today?
-    </button>
-    <button class="ai-btn secondary" onclick="openClaude('track')">
-      <span class="ai-btn-icon">📊</span> Am I on track with my projects?
-    </button>
-    <button class="ai-btn secondary" onclick="openClaude('garden')">
-      <span class="ai-btn-icon">🌱</span> What's next on the Garden App?
-    </button>
-    <button class="ai-btn secondary" onclick="openClaude('biz')">
-      <span class="ai-btn-icon">💼</span> Help me define my coaching offer
-    </button>
-    <button class="ai-btn secondary" onclick="openClaude('custom')">
-      <span class="ai-btn-icon">✏️</span> Ask something else...
-    </button>
-
-    <div id="custom-input" style="display:none;margin-top:8px">
-      <textarea class="ai-textarea" id="custom-q" placeholder="Type your question... The full project context will be included automatically."></textarea>
-      <button class="ai-btn primary" onclick="sendCustom()" style="margin-top:6px">Copy context + open Claude →</button>
+    <div id="ai-context-collapse" style="display:none;margin-bottom:8px">
+      <div class="ai-context" id="ai-context-box">
+        <span class="ctx-label">CODEX // AUTO-BRIEFING</span>
+        <span id="ai-ctx-text">Generating...</span>
+      </div>
     </div>
-    <div class="copy-flash" id="copy-flash">✓ Context copied to clipboard — paste it into Claude!</div>
+
+    <div class="card" style="padding:10px">
+      <div class="ai-chat" id="ai-chat-window">
+        <div class="ai-msg system-note">Ask me anything — I know your projects, tasks, and energy profile.<br>I can add tasks, mark things done, and update projects.</div>
+      </div>
+      <div id="ai-quick-prompts" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">
+        <button class="ai-chip" onclick="sendAiMessage('What should I focus on today?')">🎯 Focus today</button>
+        <button class="ai-chip" onclick="sendAiMessage('Am I on track with all my projects?')">📊 On track?</button>
+        <button class="ai-chip" onclick="sendAiMessage('What\\'s next on the Garden App?')">🌱 Garden next</button>
+        <button class="ai-chip" onclick="sendAiMessage('List all my pending tasks')">📋 Pending tasks</button>
+      </div>
+      <div class="ai-input-row">
+        <textarea id="ai-user-input" placeholder="Ask something, or try: 'add task Plant basil to garden' …" onkeydown="aiInputKeydown(event)" rows="1"></textarea>
+        <button class="ai-send-btn" id="ai-send-btn" onclick="aiSendFromInput()">↑</button>
+      </div>
+      <div style="font-size:9px;color:var(--muted);margin-top:5px;text-align:center;font-family:monospace;opacity:.7">Claude · can add tasks, mark done, and update projects</div>
+    </div>
+    <div class="copy-flash" id="copy-flash" style="display:none">✓ Done!</div>
   </div>
 
 
@@ -556,10 +590,16 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
     <div id="mit-list"></div>
   </div>
 
-  <div class="sec">⚡ Energy Map</div>
+  <div class="sec" style="display:flex;justify-content:space-between;align-items:center">
+    <span>⚡ Energy Map</span>
+    <button class="info-btn" onclick="showInfoModal('energymap')" title="Learn about energy zones">ℹ️ Learn</button>
+  </div>
   <div class="card" id="energy-map"></div>
 
-  <div class="sec">🔬 Energy Alignment</div>
+  <div class="sec" style="display:flex;justify-content:space-between;align-items:center">
+    <span>🔬 Energy Alignment</span>
+    <button class="info-btn" onclick="showInfoModal('alignment')" title="How to read Energy Alignment">ℹ️ Learn</button>
+  </div>
   <div class="card" id="energy-alignment">
     <div style="font-size:10px;color:var(--muted);margin-bottom:8px;font-family:monospace">Ideal energy zones vs. today's actual schedule</div>
     <div id="alignment-content"></div>
@@ -573,6 +613,16 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
 
   <div style="height:12px"></div>
 </div>
+</div>
+
+<!-- INFO MODAL (bottom sheet) -->
+<div class="info-modal" id="info-modal" onclick="closeInfoModal(event)">
+  <div class="info-modal-bg"></div>
+  <div class="info-modal-sheet">
+    <button class="info-close" onclick="closeInfoModal()">×</button>
+    <div class="info-modal-title" id="info-modal-title">About</div>
+    <div id="info-modal-body"></div>
+  </div>
 </div>
 
 <nav class="bottom-nav">
@@ -1908,7 +1958,11 @@ function renderPlan() {
     </div>
     <div class="zone-row">
       <div class="zone-label">${pf.dipEnd}</div>
-      <div class="zone-bar rise">🔄 Recovery — coaching sessions, calls, creative light work</div>
+      <div class="zone-bar recovery">🔄 Recovery — coaching sessions, calls, creative light work</div>
+    </div>
+    <div class="zone-row">
+      <div class="zone-label">${timeAdd(pf.dipEnd, 90)}</div>
+      <div class="zone-bar free">🌇 Evening — wind down, no new decisions, prep tomorrow</div>
     </div>`;
 
   // ── Energy Alignment ──
@@ -1967,13 +2021,20 @@ function renderEnergyAlignment() {
     return 'evening';
   }
 
+  // Psychology-based palette:
+  // Rising    = lime-yellow   → fresh dawn energy, "prepare, wake up gently"
+  // Peak      = deep amber    → gold = value, scarcity, your most precious time
+  // Post-peak = sage green    → calm accomplishment, "breathe out, decompress"
+  // Dip       = periwinkle    → blue lowers arousal, signals permission to slow
+  // Recovery  = vibrant teal  → teal (calm+vitality) = renewal, second wind
+  // Evening   = amber-terracotta → warmth, safety, completion
   const ZONE_INFO = {
-    'rising':    {color:'#b5c84a', label:'Rising',    desc:'Warm-up: review, set intentions, light prep'},
-    'peak':      {color:'#e8a820', label:'Peak',      desc:'Deep work: your sharpest window — most important task here'},
-    'post-peak': {color:'#8ab890', label:'Post-peak', desc:'Light tasks, lunch, a short walk — protect from heavy decisions'},
-    'dip':       {color:'#8a7a9a', label:'Dip',       desc:'Rest zone: admin, email, or a real break — don\'t fight biology'},
-    'recovery':  {color:'#4db86a', label:'Recovery',  desc:'Second wind: coaching calls, creative light work, planning'},
-    'evening':   {color:'#c8b89a', label:'Evening',   desc:'Wind-down: no new decisions, prep tomorrow'},
+    'rising':    {color:'#b8d432', label:'Rising',    desc:'Warm-up: review, set intentions, light prep'},
+    'peak':      {color:'#e89c00', label:'Peak',      desc:'Deep work: your sharpest, most valuable window'},
+    'post-peak': {color:'#58a878', label:'Post-peak', desc:'Light tasks, lunch, short walk — protect from hard decisions'},
+    'dip':       {color:'#7090b0', label:'Dip',       desc:'Rest zone: admin, email, or a real break — don\'t fight biology'},
+    'recovery':  {color:'#18a890', label:'Recovery',  desc:'Second wind: coaching calls, creative light work, planning'},
+    'evening':   {color:'#c07838', label:'Evening',   desc:'Wind-down: no new decisions, prep tomorrow'},
   };
 
   // Smart conflict detection — skip meals and fixed appointments
@@ -2014,30 +2075,46 @@ function renderEnergyAlignment() {
     }
   });
 
-  const hours = [];
-  for (let h = 7; h <= 21; h++) hours.push(h);
-
-  const idealColor = h => ZONE_INFO[zoneName(h * 60)].color;
-
-  const actualColor = h => {
-    const m = h * 60;
-    const bookedEv = actual.filter(ev => !ev.allDay).find(ev => {
-      const em = timeToMins(ev.start || '00:00');
-      const end = ev.end ? timeToMins(ev.end) : em + 60;
-      return m >= em && m < end;
-    });
-    if (!bookedEv) return idealColor(h);
-    const cat = classifyEvent(bookedEv.title || '');
-    const zone = zoneName(m);
-    if (zone === 'peak' && !['meal'].includes(cat)) return '#e05c40'; // ⚠️ conflict
-    if (zone === 'dip'  && cat === 'coaching')       return '#9b8bc0'; // info
-    if (cat === 'meal')   return '#7ab87a'; // meals: always fine, green tint
-    if (cat === 'exercise') return '#3a9a8a'; // exercise: always fine, teal
-    if (cat === 'coaching') return '#c8881a'; // coaching: gold
-    return '#5a8a9a'; // neutral booked
-  };
-
   const noData = actual.length === 0;
+
+  // ── Build smooth gradient ──────────────────────────────────
+  const S = 420, E = 1260, span = E - S; // 7am–9pm in minutes
+  const gp = m => ((Math.max(S, Math.min(E, m)) - S) / span * 100).toFixed(1) + '%';
+  const C = { r:'#b8d432', pk:'#e89c00', pp:'#58a878', dp:'#7090b0', rc:'#18a890', ev:'#c07838' };
+
+  const idealGradient = `linear-gradient(to right,
+    ${C.ev} 0%,
+    ${C.ev} ${gp(pSm-90)},
+    ${C.r}  ${gp(pSm-10)},
+    ${C.pk} ${gp(pSm+25)},
+    ${C.pk} ${gp(pEm-25)},
+    ${C.pp} ${gp(pEm+20)},
+    ${C.pp} ${gp(dSm-25)},
+    ${C.dp} ${gp(dSm+15)},
+    ${C.dp} ${gp(dEm-15)},
+    ${C.rc} ${gp(dEm+25)},
+    ${C.rc} ${gp(dEm+65)},
+    ${C.ev} ${gp(dEm+100)},
+    ${C.ev} 100%)`;
+
+  // Event overlays for actual bar
+  function eventOverlays() {
+    return actual.filter(ev => !ev.allDay).map(ev => {
+      const sm = timeToMins(ev.start || '00:00');
+      const em = ev.end ? timeToMins(ev.end) : sm + 60;
+      const cat = classifyEvent(ev.title || '');
+      const zn = zoneName(sm);
+      let bg, op;
+      if (zn === 'peak' && cat !== 'meal') { bg='#e02818'; op=.72; }
+      else if (cat === 'meal')              { bg='#48b055'; op=.55; }
+      else if (cat === 'exercise')          { bg='#18a0b0'; op=.55; }
+      else if (cat === 'coaching')          { bg='#c8881a'; op=.55; }
+      else                                  { bg='#5870a0'; op=.45; }
+      const left = ((Math.max(S,Math.min(E,sm))-S)/span*100).toFixed(1);
+      const w = Math.max(.8, ((Math.max(S,Math.min(E,em))-S)/span*100) - parseFloat(left)).toFixed(1);
+      return `<div style="position:absolute;top:0;height:100%;left:${left}%;width:${w}%;background:${bg};opacity:${op};border-radius:1px" title="${(ev.title||'').replace(/"/g,"'")}"></div>`;
+    }).join('');
+  }
 
   // ── How this works explanation ──
   let html = `
@@ -2050,8 +2127,8 @@ function renderEnergyAlignment() {
       <span>07:00</span><span style="flex:1"></span><span>${dipS}</span><span style="flex:1"></span><span>21:00</span>
     </div>
     <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-family:monospace">Ideal →</div>
-    <div style="display:flex;gap:1px;height:20px;border-radius:6px;overflow:hidden;margin-bottom:10px">
-      ${hours.map(h=>`<div style="flex:1;background:${idealColor(h)};height:100%" title="${ZONE_INFO[zoneName(h*60)].label}"></div>`).join('')}
+    <div style="position:relative;height:22px;border-radius:10px;overflow:hidden;margin-bottom:10px;box-shadow:inset 0 1px 4px rgba(0,0,0,.12)">
+      <div style="position:absolute;inset:0;background:${idealGradient}"></div>
     </div>`;
 
   if (noData) {
@@ -2059,8 +2136,9 @@ function renderEnergyAlignment() {
   } else {
     html += `
     <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-family:monospace">Actual →</div>
-    <div style="display:flex;gap:1px;height:20px;border-radius:6px;overflow:hidden;margin-bottom:12px">
-      ${hours.map(h=>`<div style="flex:1;background:${actualColor(h)};height:100%"></div>`).join('')}
+    <div style="position:relative;height:22px;border-radius:10px;overflow:hidden;margin-bottom:12px;box-shadow:inset 0 1px 4px rgba(0,0,0,.12)">
+      <div style="position:absolute;inset:0;background:${idealGradient}"></div>
+      ${eventOverlays()}
     </div>`;
     if (conflicts.length === 0) {
       html += `<div style="font-size:12px;color:var(--leaf);font-family:monospace;margin-bottom:10px">✓ Good alignment — your schedule respects your energy zones today.</div>`;
@@ -2076,9 +2154,11 @@ function renderEnergyAlignment() {
   // ── Full legend ──
   const legendItems = [
     ...Object.entries(ZONE_INFO).map(([k,v]) => ({color:v.color, label:v.label, desc:v.desc})),
-    {color:'#e05c40', label:'⚠️ Conflict', desc:'Flexible task eating peak time — worth rescheduling'},
-    {color:'#9b8bc0', label:'ℹ️ Coaching in dip', desc:'Manageable with prep — not ideal but workable'},
-    {color:'#5a8a9a', label:'Booked (neutral)', desc:'Event in off-peak zone — no issue'},
+    {color:'#e02818', label:'⚠️ Conflict', desc:'Flexible task in peak — worth rescheduling'},
+    {color:'#c8881a', label:'Coaching booked', desc:'Session shown as amber overlay'},
+    {color:'#18a0b0', label:'Exercise', desc:'Movement shown as teal overlay'},
+    {color:'#48b055', label:'Meal', desc:'Meals always fine — green, never flagged'},
+    {color:'#5870a0', label:'Booked (neutral)', desc:'Event outside peak — no conflict'},
   ];
 
   html += `
@@ -2182,30 +2262,229 @@ const PROMPTS = {
   biz: 'Help me define my coaching offer right now. Ask me 3 questions to help me write it, then help me craft the 1-sentence + 3-bullet version.',
 };
 
-function openClaude(type) {
-  if (type === 'custom') {
-    const div = document.getElementById('custom-input');
-    div.style.display = div.style.display === 'none' ? 'block' : 'none';
-    return;
+// ── Info Modal ────────────────────────────────────────
+const INFO_CONTENT = {
+  energymap: {
+    title: '⚡ Energy Map — How it works',
+    body: `
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:14px">
+        The Energy Map is based on <strong style="color:var(--forest)">chronobiology</strong> — the science of how your body's internal clock (circadian rhythm) regulates mental and physical performance throughout the day.
+      </p>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:14px">
+        Unlike a calendar, it doesn't change day-to-day. It reflects your <em>biological pattern</em> — when your cortisol, dopamine, and neural firing are at their natural high vs. low. You set your peak and dip times in your Profile, and the Map uses those.
+      </p>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px">
+        <strong style="color:var(--forest)">Is it the same for everyone?</strong> No — it shifts based on your chronotype (whether you're an early bird, night owl, or somewhere in between). Someone with a peak at 06:00–09:00 vs. your 09:00–12:00 would see a completely different map — and should plan their deep work accordingly.
+      </p>
+      <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+        ${[
+          {color:'#b8d432', label:'🌅 Rising',    t:'60–90 min before peak. Brain warms up. Best for: reviews, setting intentions, light prep.'},
+          {color:'#e89c00', label:'⚡ Peak',       t:'Your sharpest window. Cortisol + dopamine are highest. Put your hardest, most creative tasks here.'},
+          {color:'#58a878', label:'☀️ Post-peak',  t:'Energy starts declining. Still capable but not optimal. Good for: lunch, calls, easier tasks.'},
+          {color:'#7090b0', label:'😴 Dip',        t:'Natural ultradian low — everyone has one. Fight it and you lose. Use it for: admin, email, or a real nap.'},
+          {color:'#18a890', label:'🔄 Recovery',   t:'Second cortisol rise (smaller). Great for: coaching calls, social tasks, light creative work.'},
+          {color:'#c07838', label:'🌇 Evening',    t:'Winding down. Avoid big decisions or screen-heavy work. Prep tomorrow\'s intentions instead.'},
+        ].map(z=>`<div style="display:flex;gap:8px;align-items:flex-start">
+          <div style="width:10px;height:10px;border-radius:3px;background:${z.color};flex-shrink:0;margin-top:3px"></div>
+          <div><strong style="font-size:11px;color:var(--forest)">${z.label}</strong><br><span style="font-size:11px;color:var(--muted);line-height:1.5">${z.t}</span></div>
+        </div>`).join('')}
+      </div>
+      <p style="font-size:11px;color:var(--muted);line-height:1.6;margin-top:14px;padding-top:10px;border-top:1px solid var(--border)">
+        <strong>Further reading:</strong> "When" by Daniel Pink · "The Power of When" by Michael Breus · ultradian rhythm research by Peretz Lavie.
+      </p>`
+  },
+  alignment: {
+    title: '🔬 Energy Alignment — How to read it',
+    body: `
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:14px">
+        Energy Alignment compares your <em>ideal</em> biological schedule (Energy Map) against your <em>actual</em> calendar for today. It tells you whether you're working <strong style="color:var(--forest)">with</strong> your brain or against it.
+      </p>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:12px">
+        The gradient bars run from <strong>07:00 to 21:00</strong>. Each color zone represents a different energy state. When an event lands on the actual bar, it's overlaid as a colored band — you can see at a glance if it's in the right zone.
+      </p>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+        ${[
+          {color:'#e02818', label:'⚠️ Conflict (red)', t:'A flexible task (work, chores, admin) is booked during your peak window. This costs you your sharpest thinking time. Consider rescheduling.'},
+          {color:'#c8881a', label:'Coaching (amber)', t:'A session is shown in its natural amber. In recovery zone = ideal. In dip = manageable with prep.'},
+          {color:'#18a0b0', label:'Exercise (teal)', t:'Movement shown in teal. Post-dip exercise = great timing for an energy reset.'},
+          {color:'#48b055', label:'Meal (green)', t:'Meals are never flagged — eating at the right time is part of the plan, not a conflict.'},
+          {color:'#5870a0', label:'Booked (blue)', t:'Any event in a non-peak zone. Shown for reference only — no action needed.'},
+        ].map(z=>`<div style="display:flex;gap:8px;align-items:flex-start">
+          <div style="width:10px;height:10px;border-radius:3px;background:${z.color};flex-shrink:0;margin-top:3px"></div>
+          <div><strong style="font-size:11px;color:var(--forest)">${z.label}</strong><br><span style="font-size:11px;color:var(--muted);line-height:1.5">${z.t}</span></div>
+        </div>`).join('')}
+      </div>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7;padding-top:10px;border-top:1px solid var(--border)">
+        <strong>The goal</strong> isn't a perfect alignment every day — life is messy. It's to notice the pattern over time and protect at least 60–90 min of your peak for your hardest work, at least 3–4 days per week.
+      </p>`
   }
-  const question = PROMPTS[type] || '';
-  const full = buildContext(question);
-  copyAndOpen(full);
+};
+
+function showInfoModal(id) {
+  const content = INFO_CONTENT[id];
+  if (!content) return;
+  document.getElementById('info-modal-title').innerHTML = content.title;
+  document.getElementById('info-modal-body').innerHTML = content.body;
+  document.getElementById('info-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 
+function closeInfoModal(e) {
+  if (e && e.target !== document.querySelector('.info-modal-bg') && e.target !== document.getElementById('info-modal')) return;
+  document.getElementById('info-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── AI Context toggle ─────────────────────────────
+function toggleAiContext() {
+  const col = document.getElementById('ai-context-collapse');
+  const btn = document.getElementById('ai-ctx-toggle');
+  const open = col.style.display !== 'none';
+  col.style.display = open ? 'none' : 'block';
+  btn.textContent = open ? 'Context ▾' : 'Context ▴';
+  if (!open) buildContext(''); // refresh snapshot
+}
+
+// ── AI Chat ───────────────────────────────────────
+const AI_API = 'https://zsgnggtwfxyqzvrnlaqg.supabase.co/functions/v1/codex-ai';
+let aiWorking = false;
+
+function buildStateSummary() {
+  const pf = STATE.profile || {};
+  const projs = (STATE.projects || []).map(p => {
+    const pending = (p.tasks || []).filter(t => t.status !== 'done').length;
+    const done    = (p.tasks || []).filter(t => t.status === 'done').length;
+    return `${p.icon||''} ${p.title} (${done} done, ${pending} pending)`;
+  }).join(' | ');
+  const allPending = getAllPendingTasks().slice(0,10).map(t => `- ${t.title} [${t.priority}]`).join('\n');
+  const todayEvents = (window._lastCalEvents||[]).slice(0,8).map(e=>`${e.start||''} ${e.title||''}`).join(', ');
+  return `User: ${pf.name||'Ika'}. Peak: ${pf.peakStart||'09:00'}–${pf.peakEnd||'12:00'}. Dip: ${pf.dipStart||'14:00'}–${pf.dipEnd||'16:30'}.
+Projects: ${projs}
+Top pending tasks:\n${allPending}
+Today's calendar: ${todayEvents||'(none loaded)'}
+Date: ${new Date().toDateString()}`;
+}
+
+function addAiMessage(role, text) {
+  const win = document.getElementById('ai-chat-window');
+  if (!win) return;
+  const div = document.createElement('div');
+  div.className = `ai-msg ${role}`;
+  div.innerHTML = text.replace(/\n/g,'<br>');
+  win.appendChild(div);
+  win.scrollTop = win.scrollHeight;
+  return div;
+}
+
+function addThinkingBubble() {
+  const win = document.getElementById('ai-chat-window');
+  const div = document.createElement('div');
+  div.className = 'ai-thinking';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  win.appendChild(div);
+  win.scrollTop = win.scrollHeight;
+  return div;
+}
+
+async function sendAiMessage(message) {
+  if (aiWorking) return;
+  aiWorking = true;
+  const btn = document.getElementById('ai-send-btn');
+  if (btn) btn.disabled = true;
+
+  // Hide quick prompts after first message
+  const qp = document.getElementById('ai-quick-prompts');
+  if (qp) qp.style.display = 'none';
+
+  addAiMessage('user', message);
+  const thinking = addThinkingBubble();
+
+  try {
+    const res = await fetch(AI_API, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ message, state_summary: buildStateSummary() })
+    });
+
+    thinking.remove();
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    // Show text response
+    if (data.text) addAiMessage('assistant', data.text);
+
+    // Execute actions
+    if (data.actions && data.actions.length) {
+      const results = handleAiActions(data.actions);
+      if (results.length) {
+        addAiMessage('action-done', '✓ ' + results.join(' · '));
+      }
+    }
+  } catch (err) {
+    thinking.remove();
+    addAiMessage('assistant', `⚠️ Couldn't reach the AI assistant. Make sure the <strong>codex-ai</strong> Edge Function is deployed to Supabase. (${err.message})`);
+  }
+
+  aiWorking = false;
+  if (btn) btn.disabled = false;
+}
+
+function handleAiActions(actions) {
+  const results = [];
+  actions.forEach(a => {
+    try {
+      if (a.type === 'add_task') {
+        const proj = STATE.projects.find(p => p.id === a.projectId || p.title.toLowerCase().includes((a.projectId||'').toLowerCase()));
+        if (proj) {
+          const task = {id:'u_'+Date.now()+Math.random().toString(36).slice(2,6), title:a.title||'New task', priority:a.priority||'medium', status:a.status||'todo', phase:a.phase||null};
+          proj.tasks.push(task);
+          results.push(`Added "${task.title}" to ${proj.title}`);
+        }
+      } else if (a.type === 'complete_task') {
+        let found = false;
+        STATE.projects.forEach(p => {
+          const t = p.tasks.find(t => t.title.toLowerCase().includes((a.title||'').toLowerCase()) || t.id === a.id);
+          if (t && !found) { t.status = 'done'; found = true; results.push(`Marked "${t.title}" done`); }
+        });
+      } else if (a.type === 'add_project') {
+        const exists = STATE.projects.find(p => p.title.toLowerCase() === (a.title||'').toLowerCase());
+        if (!exists) {
+          STATE.projects.push({id:'u_proj_'+Date.now(), title:a.title||'New Project', icon:a.icon||'📁', color:a.color||'#5870a0', description:a.description||'', tasks:[]});
+          results.push(`Created project "${a.title}"`);
+        }
+      }
+    } catch(e) {}
+  });
+  if (results.length) { saveState(); renderProjects(); }
+  return results;
+}
+
+function aiSendFromInput() {
+  const inp = document.getElementById('ai-user-input');
+  if (!inp) return;
+  const msg = inp.value.trim();
+  if (!msg) return;
+  inp.value = '';
+  inp.style.height = '42px';
+  sendAiMessage(msg);
+}
+
+function aiInputKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); aiSendFromInput(); }
+  // Auto-grow textarea
+  setTimeout(() => {
+    const t = e.target;
+    t.style.height = '42px';
+    t.style.height = Math.min(110, t.scrollHeight) + 'px';
+  }, 0);
+}
+
+// Legacy (kept for any stray references)
+function openClaude(type) { sendAiMessage(PROMPTS[type] || 'What should I focus on today?'); }
 function sendCustom() {
-  const q = document.getElementById('custom-q').value.trim();
-  const full = buildContext(q);
-  copyAndOpen(full);
-}
-
-function copyAndOpen(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    const flash = document.getElementById('copy-flash');
-    flash.style.display = 'block';
-    setTimeout(() => { flash.style.display = 'none'; }, 3000);
-  }).catch(() => {});
-  window.open('https://claude.ai', '_blank');
+  const q = document.getElementById('custom-q');
+  if (q && q.value.trim()) sendAiMessage(q.value.trim());
 }
 
 // ══════════════════════════════════════════════
