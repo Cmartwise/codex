@@ -571,11 +571,6 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
     <div class="week-strip" id="week-strip"></div>
   </div>
 
-  <div class="sec">💡 Daily Nudge</div>
-  <div class="card nudge-card">
-    <div id="daily-nudge"></div>
-  </div>
-
   <div style="height:12px"></div>
 </div>
 </div>
@@ -624,6 +619,8 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
 // ══════════════════════════════════════════════
 // DATA
 // ══════════════════════════════════════════════
+
+const DATA_VERSION = 4; // bump this whenever DEFAULT_DATA project tasks change
 
 const DEFAULT_DATA = {
   quests: [
@@ -761,8 +758,24 @@ function migrateState(s) {
     ];
   }
   if (!s.profile) s.profile = JSON.parse(JSON.stringify(DEFAULT_DATA.profile));
- s.profile = JSON.parse(JSON.stringify(DEFAULT_DATA.profile));
+  s.profile = JSON.parse(JSON.stringify(DEFAULT_DATA.profile));
   if (!s.lifeTasks) s.lifeTasks = [];
+
+  // Data version migration — refresh project tasks from DEFAULT_DATA while preserving user-added tasks
+  if ((s.dataVersion || 0) < DATA_VERSION) {
+    ['biz','garden','nwp','appdev'].forEach(pid => {
+      const saved = s.projects ? s.projects.find(p => p.id === pid) : null;
+      const fresh = DEFAULT_DATA.projects.find(p => p.id === pid);
+      if (!fresh) return;
+      if (!saved) { s.projects = s.projects || []; s.projects.push(JSON.parse(JSON.stringify(fresh))); return; }
+      // Keep user-added tasks (id starts with 'u_') + preserve done status of known tasks
+      const userTasks = (saved.tasks || []).filter(t => t.id.startsWith('u_'));
+      const doneIds = new Set((saved.tasks || []).filter(t => t.status === 'done').map(t => t.id));
+      saved.tasks = fresh.tasks.map(t => ({...t, status: doneIds.has(t.id) ? 'done' : t.status})).concat(userTasks);
+      saved.description = fresh.description;
+    });
+    s.dataVersion = DATA_VERSION;
+  }
   // Add personal project if missing
   if (!s.projects.find(p => p.id === 'personal')) {
     s.projects.push({id:'personal', title:'Personal & Life', icon:'🌱', color:'#8ab890', description:'Daily routines, health, home, and personal goals', tasks: [
@@ -1927,12 +1940,6 @@ function renderPlan() {
     strip.appendChild(div);
   }
 
-  // ── Daily Nudge ──
-  const nudge = getDailyNudge();
-  document.getElementById('daily-nudge').innerHTML = `
-    <div class="card-title">💡 Today's nudge</div>
-    <div class="nudge-text">"${nudge.text}"</div>
-    <div class="nudge-source">${nudge.source}</div>`;
 }
 
 // ── ENERGY ALIGNMENT: ideal vs actual ──────────────────────
@@ -1941,111 +1948,152 @@ function renderEnergyAlignment() {
   if (!el) return;
   const pf = STATE.profile || {};
 
-  // Build ideal zones from profile
   const peakS = pf.peakStart || '09:00';
   const peakE = pf.peakEnd   || '12:00';
   const dipS  = pf.dipStart  || '14:00';
   const dipE  = pf.dipEnd    || '16:30';
+  const pSm = timeToMins(peakS), pEm = timeToMins(peakE);
+  const dSm = timeToMins(dipS),  dEm = timeToMins(dipE);
 
-  // Build actual session events from the last rendered day shape
-  // We store them in a global when calendar loads
   const actual = window._lastCalEvents || [];
 
-  // Check if any sessions fall in wrong zones
+  // Zone name helper
+  function zoneName(m) {
+    if (m >= pSm - 60 && m < pSm) return 'rising';
+    if (m >= pSm && m < pEm)      return 'peak';
+    if (m >= pEm && m < dSm)      return 'post-peak';
+    if (m >= dSm && m < dEm)      return 'dip';
+    if (m >= dEm && m < dEm + 90) return 'recovery';
+    return 'evening';
+  }
+
+  const ZONE_INFO = {
+    'rising':    {color:'#b5c84a', label:'Rising',    desc:'Warm-up: review, set intentions, light prep'},
+    'peak':      {color:'#e8a820', label:'Peak',      desc:'Deep work: your sharpest window — most important task here'},
+    'post-peak': {color:'#8ab890', label:'Post-peak', desc:'Light tasks, lunch, a short walk — protect from heavy decisions'},
+    'dip':       {color:'#8a7a9a', label:'Dip',       desc:'Rest zone: admin, email, or a real break — don\'t fight biology'},
+    'recovery':  {color:'#4db86a', label:'Recovery',  desc:'Second wind: coaching calls, creative light work, planning'},
+    'evening':   {color:'#c8b89a', label:'Evening',   desc:'Wind-down: no new decisions, prep tomorrow'},
+  };
+
+  // Smart conflict detection — skip meals and fixed appointments
+  const FIXED_CATS = ['meal']; // never suggest rescheduling these
   const conflicts = [];
-  actual.forEach(ev => {
-    const t = ev.start || ev.t || '';
+
+  actual.filter(ev => !ev.allDay).forEach(ev => {
+    const t = ev.start || '';
     if (!t) return;
     const mins = timeToMins(t);
-    const peakSm = timeToMins(peakS), peakEm = timeToMins(peakE);
-    const dipSm  = timeToMins(dipS),  dipEm  = timeToMins(dipE);
-    const durationH = ev.duration || 1;
+    const cat = classifyEvent(ev.title || '');
+    const isFixed = FIXED_CATS.includes(cat);
+    const title30 = (ev.title || 'Event').slice(0, 32);
+    const zone = zoneName(mins);
 
-    // Session in peak window = energy cost
-    if (mins >= peakSm && mins < peakEm) {
-      conflicts.push({type:'peak-cost', t, title: ev.title || 'Session',
-        msg: `"${(ev.title||'Session').slice(0,30)}" at ${t} is in your peak window — this costs deep-work time.`,
-        advice: `If possible, move to ${dipE} or later (recovery zone) where social energy is still available.`,
-        severity: 'warn'});
-    }
-    // Session in dip = fine, but flag if it's very long
-    if (mins >= dipSm && mins < dipEm && durationH >= 2) {
-      conflicts.push({type:'long-dip', t, title: ev.title||'Session',
-        msg: `${durationH}h session in your dip window (${dipS}–${dipE}) may feel draining.`,
-        advice: 'Take a 5-min break mid-session. Prepare notes beforehand so you can run on autopilot.',
-        severity: 'info'});
+    if (zone === 'peak' && !isFixed) {
+      // Flexible event eating peak time
+      const bestAlt = cat === 'chores' ? `${dipS} (dip zone — admin tasks fit perfectly there)`
+                    : cat === 'exercise' ? `${dipE} (post-dip walk resets your energy naturally)`
+                    : `${dipE} onwards (recovery zone)`;
+      conflicts.push({
+        severity: 'warn',
+        msg: `"${title30}" is in your peak window (${peakS}–${peakE})`,
+        advice: `Peak time is your scarcest resource. Consider moving this to ${bestAlt} and protecting this slot for deep work.`
+      });
+    } else if (zone === 'dip' && cat === 'coaching') {
+      conflicts.push({
+        severity: 'info',
+        msg: `Coaching session "${title30}" lands in your dip (${dipS}–${dipE})`,
+        advice: 'You can run coaching calls on autopilot during the dip — prepare your notes beforehand and keep energy with short breaks.'
+      });
+    } else if (zone === 'post-peak' && cat === 'work') {
+      conflicts.push({
+        severity: 'info',
+        msg: `Work block "${title30}" is post-peak — your focus will be softer here`,
+        advice: 'Use this slot for lighter work (emails, reviews, planning) rather than deep creative or analytical tasks.'
+      });
     }
   });
 
-  // Build visual comparison
   const hours = [];
-  for (let h=7; h<=21; h++) hours.push(h);
+  for (let h = 7; h <= 21; h++) hours.push(h);
 
-  const idealColor = h => {
-    const m = h * 60;
-    const pS=timeToMins(peakS), pE=timeToMins(peakE), dS=timeToMins(dipS), dE=timeToMins(dipE);
-    if (m >= pS-60 && m < pS) return '#b5c84a';
-    if (m >= pS && m < pE)    return '#e8a820';
-    if (m >= pE && m < dS)    return '#8ab890';
-    if (m >= dS && m < dE)    return '#8a7a9a';
-    if (m >= dE && m < dE+90) return '#4db86a';
-    return '#c8b89a';
-  };
+  const idealColor = h => ZONE_INFO[zoneName(h * 60)].color;
 
   const actualColor = h => {
-    // If a session is at this hour, use a "booked" color; compare to ideal
     const m = h * 60;
-    const pS=timeToMins(peakS), pE=timeToMins(peakE);
-    const dS=timeToMins(dipS),  dE=timeToMins(dipE);
-    const booked = actual.some(ev => {
-      const em = timeToMins(ev.start || ev.t || '00:00');
-      return m >= em && m < em + 60;
+    const bookedEv = actual.filter(ev => !ev.allDay).find(ev => {
+      const em = timeToMins(ev.start || '00:00');
+      const end = ev.end ? timeToMins(ev.end) : em + 60;
+      return m >= em && m < end;
     });
-    if (!booked) return idealColor(h); // no session — same as ideal
-    // Session is booked — show conflict if it's in peak
-    if (m >= pS && m < pE) return '#e05c40'; // red — session eating peak
-    if (m >= dS && m < dE) return '#9b8bc0'; // soft purple — session in dip (ok)
-    return '#5a8a9a'; // teal — session in recovery/neutral
+    if (!bookedEv) return idealColor(h);
+    const cat = classifyEvent(bookedEv.title || '');
+    const zone = zoneName(m);
+    if (zone === 'peak' && !['meal'].includes(cat)) return '#e05c40'; // ⚠️ conflict
+    if (zone === 'dip'  && cat === 'coaching')       return '#9b8bc0'; // info
+    if (cat === 'meal')   return '#7ab87a'; // meals: always fine, green tint
+    if (cat === 'exercise') return '#3a9a8a'; // exercise: always fine, teal
+    if (cat === 'coaching') return '#c8881a'; // coaching: gold
+    return '#5a8a9a'; // neutral booked
   };
 
   const noData = actual.length === 0;
 
+  // ── How this works explanation ──
   let html = `
-    <div style="display:flex;gap:8px;margin-bottom:10px;font-size:10px;color:var(--muted);font-family:monospace">
-      <span>07:00</span><span style="flex:1"></span><span>14:00</span><span style="flex:1"></span><span>21:00</span>
+    <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:12px;padding:8px 10px;background:var(--surface);border-radius:8px">
+      <strong style="color:var(--forest);font-size:10px;letter-spacing:1px;font-family:monospace;text-transform:uppercase">How this works</strong><br>
+      The <em>Ideal</em> bar shows when your brain and body work best, based on your profile (peak ${peakS}–${peakE}, dip ${dipS}–${dipE}). It's the same every day — your biological rhythm.<br>
+      The <em>Actual</em> bar maps your real calendar events onto those zones. Conflicts appear where flexible tasks land in the wrong energy window.
     </div>
-    <div style="margin-bottom:6px;font-size:10px;color:var(--muted)">Ideal →</div>
-    <div style="display:flex;gap:1px;height:18px;border-radius:6px;overflow:hidden;margin-bottom:10px">
-      ${hours.map(h=>`<div style="flex:1;background:${idealColor(h)};height:100%"></div>`).join('')}
+    <div style="display:flex;gap:8px;margin-bottom:6px;font-size:10px;color:var(--muted);font-family:monospace">
+      <span>07:00</span><span style="flex:1"></span><span>${dipS}</span><span style="flex:1"></span><span>21:00</span>
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-family:monospace">Ideal →</div>
+    <div style="display:flex;gap:1px;height:20px;border-radius:6px;overflow:hidden;margin-bottom:10px">
+      ${hours.map(h=>`<div style="flex:1;background:${idealColor(h)};height:100%" title="${ZONE_INFO[zoneName(h*60)].label}"></div>`).join('')}
     </div>`;
 
   if (noData) {
-    html += `<div style="font-size:11px;color:var(--muted);font-style:italic">Actual schedule will appear here once calendar loads on the Home tab.</div>`;
+    html += `<div style="font-size:11px;color:var(--muted);font-style:italic;margin-bottom:10px">Actual schedule appears here once calendar loads on the Today tab.</div>`;
   } else {
     html += `
-    <div style="margin-bottom:6px;font-size:10px;color:var(--muted)">Actual →</div>
-    <div style="display:flex;gap:1px;height:18px;border-radius:6px;overflow:hidden;margin-bottom:12px">
+    <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-family:monospace">Actual →</div>
+    <div style="display:flex;gap:1px;height:20px;border-radius:6px;overflow:hidden;margin-bottom:12px">
       ${hours.map(h=>`<div style="flex:1;background:${actualColor(h)};height:100%"></div>`).join('')}
     </div>`;
-
     if (conflicts.length === 0) {
-      html += `<div style="font-size:12px;color:var(--leaf);font-family:monospace">✓ Alignment looks good — your schedule respects your energy zones today.</div>`;
+      html += `<div style="font-size:12px;color:var(--leaf);font-family:monospace;margin-bottom:10px">✓ Good alignment — your schedule respects your energy zones today.</div>`;
     } else {
       html += conflicts.map(c => `
-        <div style="margin-bottom:10px;padding:8px 10px;border-radius:6px;background:${c.severity==='warn'?'rgba(224,92,64,0.1)':'rgba(155,139,192,0.1)'};border-left:3px solid ${c.severity==='warn'?'#e05c40':'#9b8bc0'}">
+        <div style="margin-bottom:10px;padding:8px 10px;border-radius:6px;background:${c.severity==='warn'?'rgba(224,92,64,0.08)':'rgba(155,139,192,0.08)'};border-left:3px solid ${c.severity==='warn'?'#e05c40':'#9b8bc0'}">
           <div style="font-size:11px;font-weight:600;color:var(--forest);margin-bottom:3px">${c.severity==='warn'?'⚠️':'ℹ️'} ${c.msg}</div>
           <div style="font-size:11px;color:var(--muted);line-height:1.5">${c.advice}</div>
         </div>`).join('');
     }
   }
 
-  // Legend
+  // ── Full legend ──
+  const legendItems = [
+    ...Object.entries(ZONE_INFO).map(([k,v]) => ({color:v.color, label:v.label, desc:v.desc})),
+    {color:'#e05c40', label:'⚠️ Conflict', desc:'Flexible task eating peak time — worth rescheduling'},
+    {color:'#9b8bc0', label:'ℹ️ Coaching in dip', desc:'Manageable with prep — not ideal but workable'},
+    {color:'#5a8a9a', label:'Booked (neutral)', desc:'Event in off-peak zone — no issue'},
+  ];
+
   html += `
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
-      <span style="font-size:10px;color:var(--muted)"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#e8a820;vertical-align:middle"></span> Peak</span>
-      <span style="font-size:10px;color:var(--muted)"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#8a7a9a;vertical-align:middle"></span> Dip</span>
-      <span style="font-size:10px;color:var(--muted)"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#4db86a;vertical-align:middle"></span> Recovery</span>
-      <span style="font-size:10px;color:var(--muted)"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#e05c40;vertical-align:middle"></span> Session in peak ⚠️</span>
+    <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-family:monospace;margin-bottom:8px">Legend</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+        ${legendItems.map(item=>`
+          <div style="display:flex;align-items:flex-start;gap:6px">
+            <div style="width:10px;height:10px;border-radius:2px;background:${item.color};flex-shrink:0;margin-top:2px"></div>
+            <div>
+              <div style="font-size:10px;font-weight:600;color:var(--forest)">${item.label}</div>
+              <div style="font-size:9px;color:var(--muted);line-height:1.4">${item.desc}</div>
+            </div>
+          </div>`).join('')}
+      </div>
     </div>`;
 
   el.innerHTML = html;
@@ -2203,7 +2251,9 @@ function confirmAddTask() {
   const status = document.getElementById('new-task-status').value;
   const phase = document.getElementById('new-task-phase').value.trim() || null;
   const id = 'u_' + Date.now();
-  STATE.projects[addingToProject].tasks.push({id, title, priority, status, phase});
+  const proj = STATE.projects.find(p => p.id === addingToProject);
+  if (!proj) return;
+  proj.tasks.push({id, title, priority, status, phase});
   saveState();
   closeModal();
   renderProject(addingToProject);
