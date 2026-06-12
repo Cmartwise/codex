@@ -341,6 +341,16 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
 .nudge-card .card-title{color:var(--gold2)}
 .nudge-text{font-size:13px;line-height:1.7;margin-top:6px;font-style:italic}
 .nudge-source{font-size:9px;font-family:monospace;opacity:.4;margin-top:8px}
+/* Home nudge strip — compact bar above calendar */
+.home-nudge{background:var(--forest);border-radius:var(--radius-sm);padding:8px 12px;color:#e8f0e2;font-size:11px;font-style:italic;line-height:1.5;border-left:3px solid var(--gold2)}
+.home-nudge .hn-src{font-size:9px;font-family:monospace;opacity:.4;margin-top:3px}
+/* Event category colors on day-bar */
+.day-bar.ev-coaching{background:rgba(200,136,26,.18);border-left:3px solid #c8881a;color:var(--text)}
+.day-bar.ev-work{background:rgba(58,122,191,.15);border-left:3px solid #3a7abf;color:var(--text)}
+.day-bar.ev-chores{background:rgba(122,78,42,.12);border-left:3px solid #7a4e2a;color:var(--text)}
+.day-bar.ev-meal{background:rgba(77,184,106,.13);border-left:3px solid #4db86a;color:var(--text)}
+.day-bar.ev-exercise{background:rgba(58,138,138,.14);border-left:3px solid #3a8a8a;color:var(--text)}
+.day-bar.ev-personal{background:rgba(122,92,160,.13);border-left:3px solid #7a5ca0;color:var(--text)}
 .plan-edit-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
 .plan-edit-row label{font-size:11px;color:var(--muted);width:90px;flex-shrink:0}
 .plan-edit-row input,.plan-edit-row select{
@@ -424,6 +434,7 @@ body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(
     <div class="sec">Today's Focus</div>
     <div id="quest-list"></div>
 
+    <div id="home-nudge-strip" style="display:none;margin-bottom:4px"></div>
     <div class="sec">Day Shape</div>
     <div id="day-shape"></div>
 
@@ -634,29 +645,33 @@ const DEFAULT_DATA = {
         {id:'b10', title:'Explore group coaching format', priority:'low', status:'todo', phase:'Scale'},
       ]
    },
-   {id:'garden', title:'Garden App', icon:'🌿', color:'#4db86a', description:'Plant tracking mobile app — React Native', tasks: [
-        {id:'g1', title:'Install Node.js (LTS) + VS Code', priority:'critical', status:'todo', phase:'Phase 1'},
-        {id:'g2', title:'Install Expo CLI globally', priority:'critical', status:'todo', phase:'Phase 1'},
-        {id:'g3', title:'Create project: npx create-expo-app TheGarden', priority:'critical', status:'todo', phase:'Phase 1'},
-        {id:'g4', title:'Install Expo Go on phone + scan QR', priority:'high', status:'todo', phase:'Phase 1'},
-        {id:'g5', title:'Learn RN basics: View, Text, StyleSheet, useState', priority:'high', status:'todo', phase:'Phase 1'},
-        {id:'g6', title:'Convert Dashboard screen to React Native', priority:'high', status:'todo', phase:'Phase 1'},
-        {id:'g7', title:'Convert PlantCard component', priority:'medium', status:'todo', phase:'Phase 1'},
-        {id:'g8', title:'Set up Supabase project', priority:'critical', status:'todo', phase:'Phase 2'},
-        {id:'g9', title:'Design and create DB schema', priority:'critical', status:'todo', phase:'Phase 2'},
-        {id:'g10', title:'Implement auth (email + anonymous)', priority:'high', status:'todo', phase:'Phase 2'},
-        {id:'g11', title:'Plant CRUD operations', priority:'high', status:'todo', phase:'Phase 2'},
-        {id:'g12', title:'Integrate native camera (expo-camera)', priority:'high', status:'todo', phase:'Phase 2'},
-        {id:'g13', title:'Photo ID flow → Anthropic API', priority:'high', status:'todo', phase:'Phase 2'},
-        {id:'g14', title:'Push notifications (expo-notifications)', priority:'medium', status:'todo', phase:'Phase 2'},
-        {id:'g15', title:'OpenWeatherMap live weather integration', priority:'medium', status:'todo', phase:'Phase 2'},
-        {id:'g16', title:'Full UI polish pass', priority:'medium', status:'todo', phase:'Phase 3'},
-        {id:'g17', title:'Offline support (AsyncStorage)', priority:'medium', status:'todo', phase:'Phase 3'},
-        {id:'g18', title:'Beta testing — 5 users', priority:'high', status:'todo', phase:'Phase 3'},
-        {id:'g19', title:'App Store Connect + Google Play setup', priority:'critical', status:'todo', phase:'Phase 3'},
-        {id:'g20', title:'EAS Build configuration', priority:'high', status:'todo', phase:'Phase 3'},
-        {id:'g21', title:'Screenshots + store listing copy', priority:'high', status:'todo', phase:'Phase 3'},
-        {id:'g22', title:'Submit to both app stores', priority:'critical', status:'todo', phase:'Phase 3'},
+   {id:'garden', title:'Garden App', icon:'🌿', color:'#4db86a', description:'Plant care app — React prototype → React Native/Expo → App Store', tasks: [
+        {id:'g1', title:'Install Node.js (LTS) + VS Code', priority:'critical', status:'todo', phase:'Phase 1 — Foundation'},
+        {id:'g2', title:'Install Expo CLI + create TheGarden project', priority:'critical', status:'todo', phase:'Phase 1 — Foundation'},
+        {id:'g3', title:'Run app on phone via Expo Go (scan QR)', priority:'critical', status:'todo', phase:'Phase 1 — Foundation'},
+        {id:'g4', title:'Learn RN basics: View, Text, StyleSheet, useState, FlatList', priority:'high', status:'todo', phase:'Phase 1 — Foundation'},
+        {id:'g5', title:'Convert Dashboard screen to React Native', priority:'high', status:'todo', phase:'Phase 1 — Foundation'},
+        {id:'g6', title:'Convert PlantCard component to RN', priority:'medium', status:'todo', phase:'Phase 1 — Foundation'},
+        {id:'g7', title:'Build Dashboard: AI daily briefing + stats + alerts', priority:'critical', status:'done', phase:'React Prototype'},
+        {id:'g8', title:'PlantCard: current vs ideal status comparison grid (green/yellow/red)', priority:'high', status:'done', phase:'React Prototype'},
+        {id:'g9', title:'YieldLogPanel — cumulative harvest log per plant', priority:'high', status:'done', phase:'React Prototype'},
+        {id:'g10', title:'Harvest tab — all harvestable plants, no trichome content', priority:'high', status:'done', phase:'React Prototype'},
+        {id:'g11', title:'Garden Map — corrected orientation (South=staircase, North=windows)', priority:'medium', status:'done', phase:'React Prototype'},
+        {id:'g12', title:'Add Dracaena Tricolor (south wall, 6.1L, ID June 11)', priority:'high', status:'done', phase:'React Prototype'},
+        {id:'g13', title:'Add Almond Tree (south staircase, 34.5L, ID June 11, moved to sun)', priority:'high', status:'done', phase:'React Prototype'},
+        {id:'g14', title:'Repot strawberry → 7.2L tapered pot + banana peel', priority:'critical', status:'done', phase:'Garden Tasks'},
+        {id:'g15', title:'Water overdue plants: Auto Amnesia + Sweet Amnesia (3 days)', priority:'critical', status:'todo', phase:'Garden Tasks'},
+        {id:'g16', title:'Dracaena: monthly feed (diluted), fluoride-free water', priority:'high', status:'todo', phase:'Garden Tasks'},
+        {id:'g17', title:'Dracaena: check for scale insects + plan repot to 10-12L', priority:'medium', status:'todo', phase:'Garden Tasks'},
+        {id:'g18', title:'Almond: iron chlorosis check — yellowing between veins?', priority:'high', status:'todo', phase:'Garden Tasks'},
+        {id:'g19', title:'Almond: feed + compost, remove suckers, cross-pollination research', priority:'medium', status:'todo', phase:'Garden Tasks'},
+        {id:'g20', title:'Strawberry: start Bio·Grow 1ml/L ~June 17 (post-repot recovery)', priority:'high', status:'todo', phase:'Garden Tasks'},
+        {id:'g21', title:'Set up Supabase DB — plants, journal, tasks, archive schema', priority:'critical', status:'todo', phase:'Phase 2 — Build'},
+        {id:'g22', title:'Implement auth + plant CRUD', priority:'critical', status:'todo', phase:'Phase 2 — Build'},
+        {id:'g23', title:'Native camera → photo ID flow → Anthropic API', priority:'high', status:'todo', phase:'Phase 2 — Build'},
+        {id:'g24', title:'Push notifications — watering reminders', priority:'medium', status:'todo', phase:'Phase 2 — Build'},
+        {id:'g25', title:'Live weather: OpenWeatherMap (Isla Cristina lat 37.2, lon -7.32)', priority:'medium', status:'todo', phase:'Phase 2 — Build'},
+        {id:'g26', title:'Beta testing — 5 users + App Store submission', priority:'critical', status:'todo', phase:'Phase 3 — Launch'},
       ]
    },
    {id:'personal', title:'Personal & Life', icon:'🌱', color:'#8ab890', description:'Daily routines, health, home, and personal goals', tasks: [
@@ -930,6 +945,69 @@ async function fetchAndRenderCalendar() {
   }
 }
 
+// ── Event category classifier ─────────────────────────────────
+function classifyEvent(title) {
+  const t = title.toLowerCase();
+  // Meals — time-anchored to biology, never suggest rescheduling
+  if (/breakfast|desayuno|brunch|lunch|almuerzo|dinner|cena|comida|snack|meal|eat|café|cafe/.test(t))
+    return 'meal';
+  // Coaching / teaching sessions
+  if (/coach|session|class|lesson|student|alumno|alumna|tutor|teach|language|class|portuguese|inglés|ingles/.test(t))
+    return 'coaching';
+  // Exercise / movement
+  if (/walk|paseo|dog|perro|gym|exercise|yoga|run|sport|jog|fitness|training|entrena/.test(t))
+    return 'exercise';
+  // Chores / home maintenance
+  if (/clean|vacuum|bathroom|kitchen|cook|dishes|laundry|wash|limpi|hoover|scrub|fregar|baño|cocina|plancha|compra|shopping/.test(t))
+    return 'chores';
+  // Work / project blocks
+  if (/work|project|codex|app|dev|build|code|meeting|reunión|reunion|focus|deep|task|write|research/.test(t))
+    return 'work';
+  // Personal / life
+  if (/personal|family|partner|rest|nap|relax|meditat|descanso|siesta|call|phone|doctor|appointment/.test(t))
+    return 'personal';
+  return 'session'; // default — keeps original styling
+}
+
+// ── Gap advice — context-aware, never references fixed events ─
+function getAdviceForGap(startM, nextEvent, peakS, peakE, dipS, dipE) {
+  const nextCat = nextEvent ? classifyEvent(nextEvent.title) : null;
+  // Don't suggest rescheduling meals or coaching appointments
+  const nextIsFixed = nextCat === 'meal' || nextCat === 'coaching';
+
+  if (startM >= peakS - 60 && startM < peakS)
+    return {l:'🌅 Rising energy — review your MITs, set today\'s intention', tp:'free'};
+
+  if (startM >= peakS && startM < peakE) {
+    if (nextIsFixed)
+      return {l:'⚡ Peak zone — use this time for deep work before your next fixed event', tp:'session'};
+    return {l:'⚡ Peak zone — your sharpest window. Start your most important task now.', tp:'session'};
+  }
+
+  if (startM >= peakE && startM < dipS) {
+    if (nextCat === 'meal')
+      return {l:'☕ Post-peak — good time to eat, then a short walk to extend your energy', tp:'routine'};
+    return {l:'☕ Post-peak — light tasks, clear inbox, brief walk. Save decisions for recovery.', tp:'routine'};
+  }
+
+  if (startM >= dipS && startM < dipE) {
+    if (nextCat === 'exercise')
+      return {l:'😴 Dip zone — rest until your walk/exercise. Movement will reset your energy.', tp:'routine'};
+    return {l:'😴 Dip zone — don\'t force focus. Admin, email, or a real 20-min break.', tp:'routine'};
+  }
+
+  if (startM >= dipE && startM < dipE + 90) {
+    if (nextCat === 'coaching')
+      return {l:'🔄 Recovery rising — good time to prep for your upcoming coaching session', tp:'free'};
+    return {l:'🔄 Recovery — creative work, planning, coaching calls. Second wind starting.', tp:'free'};
+  }
+
+  if (startM >= 19 * 60)
+    return {l:'🌙 Evening — wind down. Write tomorrow\'s first task before you close.', tp:'routine'};
+
+  return {l:'⏳ Free block — use it intentionally', tp:'free'};
+}
+
 function renderDayShapeWithEvents(sessions) {
   const el = document.getElementById('day-shape');
   if (!sessions.length) { renderDayShape(); return; }
@@ -940,16 +1018,6 @@ function renderDayShapeWithEvents(sessions) {
   const dipS  = timeToMins(pf.dipStart  || '14:00');
   const dipE  = timeToMins(pf.dipEnd    || '16:30');
 
-  function getAdviceForGap(startM) {
-    if (startM >= peakS - 60 && startM < peakS) return {l:'🌅 Rising energy — review notes, set intentions', tp:'free'};
-    if (startM >= peakS && startM < peakE)       return {l:'⚡ Peak zone — deep work, most important task', tp:'session'};
-    if (startM >= peakE && startM < dipS)         return {l:'☕ Post-peak — light tasks, lunch, short walk', tp:'routine'};
-    if (startM >= dipS && startM < dipE)          return {l:'😴 Dip zone — admin, email, easy tasks only', tp:'routine'};
-    if (startM >= dipE && startM < dipE + 90)     return {l:'🔄 Recovery — coaching calls, creative light work', tp:'free'};
-    if (startM >= 19 * 60)                        return {l:'🌙 Evening — wind down, plan tomorrow', tp:'routine'};
-    return {l:'⏳ Free block', tp:'free'};
-  }
-
   function minsToTime(m) {
     return String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
   }
@@ -958,32 +1026,49 @@ function renderDayShapeWithEvents(sessions) {
   const blocks = [];
   let prevEnd = 7 * 60 + 30; // start scanning from 07:30
 
-  sorted.forEach(s => {
+  sorted.forEach((s, i) => {
     const startM = timeToMins(s.start);
     const endM   = s.end ? timeToMins(s.end) : startM + 60;
     // Gap before this event (>= 30 min)
     if (startM - prevEnd >= 30 && prevEnd >= 7 * 60) {
-      const adv = getAdviceForGap(prevEnd);
+      const adv = getAdviceForGap(prevEnd, s, peakS, peakE, dipS, dipE);
       blocks.push({t: minsToTime(prevEnd), l: adv.l, tp: adv.tp, isAdvice: true});
     }
-    blocks.push({t: s.start, l: s.title + (s.end ? ' · ' + s.start + '–' + s.end : ''), tp: s.type || 'session', isAdvice: false});
+    const cat = classifyEvent(s.title);
+    const timeStr = s.end && !s.allDay ? ` · ${s.start}–${s.end}` : '';
+    blocks.push({t: s.start, l: s.title + timeStr, tp: s.type || 'session', cat, isAdvice: false, allDay: s.allDay});
     prevEnd = endM;
   });
 
   // Gap after last event (until 21:00)
   if (prevEnd < 21 * 60) {
-    const adv = getAdviceForGap(prevEnd);
+    const adv = getAdviceForGap(prevEnd, null, peakS, peakE, dipS, dipE);
     blocks.push({t: minsToTime(prevEnd), l: adv.l, tp: adv.tp, isAdvice: true});
   }
 
-  el.innerHTML = '';
+  // Build legend for event categories present
+  const cats = [...new Set(blocks.filter(b => !b.isAdvice).map(b => b.cat).filter(Boolean))];
+  const catLabels = {coaching:'🟠 Coaching', work:'🔵 Work', chores:'🟤 Chores', meal:'🟢 Meal', exercise:'🩵 Exercise', personal:'🟣 Personal', session:'⚪ Other'};
+  const legend = cats.filter(c => catLabels[c]).map(c => `<span style="font-size:9px;font-family:monospace;opacity:.5;margin-right:8px">${catLabels[c]}</span>`).join('');
+
+  el.innerHTML = legend ? `<div style="margin-bottom:6px">${legend}</div>` : '';
+
   blocks.forEach(s => {
     const div = document.createElement('div');
     div.className = 'day-block';
+    const catClass = (!s.isAdvice && s.cat && s.cat !== 'session') ? ` ev-${s.cat}` : '';
     const style = s.isAdvice ? ' style="opacity:0.75;font-style:italic"' : '';
-    div.innerHTML = `<div class="heat-strip" style="background:${getHeatColor(s.t)}"></div><div class="day-time">${s.t}</div><div class="day-bar ${s.tp}"${style}>${s.l}</div>`;
+    div.innerHTML = `<div class="heat-strip" style="background:${getHeatColor(s.t)}"></div><div class="day-time">${s.t}</div><div class="day-bar ${s.tp}${catClass}"${style}>${s.l}</div>`;
     el.appendChild(div);
   });
+}
+
+function renderHomeNudge() {
+  const strip = document.getElementById('home-nudge-strip');
+  if (!strip) return;
+  const nudge = getDailyNudge();
+  strip.style.display = 'block';
+  strip.innerHTML = `<div class="home-nudge">💡 ${nudge.text}<div class="hn-src">${nudge.source}</div></div>`;
 }
 
 function renderHome() {
@@ -991,6 +1076,7 @@ function renderHome() {
   renderTodayFocus();
   renderDayShape();
   renderOverallProgress();
+  renderHomeNudge();
 
   // Stats — live calendar will overwrite these once loaded
   document.getElementById('s-sessions').textContent = '…';
