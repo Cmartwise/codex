@@ -1934,7 +1934,36 @@ function renderPlan() {
 
   // ── Energy Map ──
   const energyMap = document.getElementById('energy-map');
-  renderEnergyMapChart(energyMap, mits);
+  const mitTitles = mits.slice(0,2).map(t => t.title.slice(0,35)+'…');
+  energyMap.innerHTML = `
+    <div class="zone-row">
+      <div class="zone-label">${pf.peakStart}</div>
+      <div class="zone-bar rise">🌅 Rising — light start, review yesterday, plan the blocks</div>
+    </div>
+    <div class="zone-row">
+      <div class="zone-label">${timeAdd(pf.peakStart, 45)}</div>
+      <div class="zone-bar peak">⚡ PEAK — deep work · ${mitTitles[0] || 'hardest MIT first'}</div>
+    </div>
+    <div class="zone-row">
+      <div class="zone-label">${timeAdd(pf.peakStart, 45+parseInt(pf.deepWorkMins||90))}</div>
+      <div class="zone-bar peak">⚡ PEAK — deep work · ${mitTitles[1] || 'second priority'}</div>
+    </div>
+    <div class="zone-row">
+      <div class="zone-label">${pf.peakEnd}</div>
+      <div class="zone-bar free">☕ Break + lunch · decompress, walk, no screens ideal</div>
+    </div>
+    <div class="zone-row">
+      <div class="zone-label">${pf.dipStart}</div>
+      <div class="zone-bar dip">😴 DIP — admin, email, easy tasks · protect from hard work</div>
+    </div>
+    <div class="zone-row">
+      <div class="zone-label">${pf.dipEnd}</div>
+      <div class="zone-bar recovery">🔄 Recovery — coaching sessions, calls, creative light work</div>
+    </div>
+    <div class="zone-row">
+      <div class="zone-label">${timeAdd(pf.dipEnd, 90)}</div>
+      <div class="zone-bar free">🌇 Evening — wind down, no new decisions, prep tomorrow</div>
+    </div>`;
 
   // ── Energy Alignment ──
   renderEnergyAlignment();
@@ -1967,8 +1996,7 @@ function renderPlan() {
 
 }
 
-// ── ENERGY MAP: SVG spline chart ───────────────────────────
-// Time span: 06:00–22:00 (covers full waking day; peak/dip come from profile)
+// ── ENERGY ALIGNMENT: mountain chart ───────────────────────
 function renderEnergyMapChart(el, mits) {
   const pf = STATE.profile || {};
   const peakS = pf.peakStart || '09:00';
@@ -2174,185 +2202,161 @@ function renderEnergyMapChart(el, mits) {
     </div>`;
 }
 
-// ── ENERGY ALIGNMENT: ideal vs actual ──────────────────────
+// ── ENERGY ALIGNMENT: mountain chart (ideal curve + event overlay) ────
 function renderEnergyAlignment() {
   const el = document.getElementById('alignment-content');
   if (!el) return;
   const pf = STATE.profile || {};
-
-  const peakS = pf.peakStart || '09:00';
-  const peakE = pf.peakEnd   || '12:00';
-  const dipS  = pf.dipStart  || '14:00';
-  const dipE  = pf.dipEnd    || '16:30';
+  const peakS = pf.peakStart || '09:00', peakE = pf.peakEnd || '12:00';
+  const dipS  = pf.dipStart  || '14:00', dipE  = pf.dipEnd  || '16:30';
   const pSm = timeToMins(peakS), pEm = timeToMins(peakE);
   const dSm = timeToMins(dipS),  dEm = timeToMins(dipE);
-
   const actual = window._lastCalEvents || [];
 
-  // Zone name helper
   function zoneName(m) {
-    if (m >= pSm - 60 && m < pSm) return 'rising';
-    if (m >= pSm && m < pEm)      return 'peak';
-    if (m >= pEm && m < dSm)      return 'post-peak';
-    if (m >= dSm && m < dEm)      return 'dip';
-    if (m >= dEm && m < dEm + 90) return 'recovery';
+    if (m >= pSm-60 && m < pSm) return 'rising';
+    if (m >= pSm && m < pEm)    return 'peak';
+    if (m >= pEm && m < dSm)    return 'post-peak';
+    if (m >= dSm && m < dEm)    return 'dip';
+    if (m >= dEm && m < dEm+90) return 'recovery';
     return 'evening';
   }
 
-  // Psychology-based palette:
-  // Rising    = lime-yellow   → fresh dawn energy, "prepare, wake up gently"
-  // Peak      = deep amber    → gold = value, scarcity, your most precious time
-  // Post-peak = sage green    → calm accomplishment, "breathe out, decompress"
-  // Dip       = periwinkle    → blue lowers arousal, signals permission to slow
-  // Recovery  = vibrant teal  → teal (calm+vitality) = renewal, second wind
-  // Evening   = amber-terracotta → warmth, safety, completion
-  const ZONE_INFO = {
-    'rising':    {color:'#b8d432', label:'Rising',    desc:'Warm-up: review, set intentions, light prep'},
-    'peak':      {color:'#e89c00', label:'Peak',      desc:'Deep work: your sharpest, most valuable window'},
-    'post-peak': {color:'#58a878', label:'Post-peak', desc:'Light tasks, lunch, short walk — protect from hard decisions'},
-    'dip':       {color:'#7090b0', label:'Dip',       desc:'Rest zone: admin, email, or a real break — don\'t fight biology'},
-    'recovery':  {color:'#18a890', label:'Recovery',  desc:'Second wind: coaching calls, creative light work, planning'},
-    'evening':   {color:'#c07838', label:'Evening',   desc:'Wind-down: no new decisions, prep tomorrow'},
-  };
+  // ── SVG mountain chart ──────────────────────────────────
+  const SH = 7, EH = 21, W = 300, CH = 52;
+  const pH = pSm/60, pEH = pEm/60, dH = dSm/60, dEH = dEm/60;
+  const xh = h => ((Math.max(SH,Math.min(EH,h))-SH)/(EH-SH)*W);
+  const xm = m => xh(m/60);
+  const ye = e => CH - Math.max(0,Math.min(100,e))/100*CH;
 
-  // Smart conflict detection — skip meals and fixed appointments
-  const FIXED_CATS = ['meal']; // never suggest rescheduling these
+  // Energy curve key points [hour, energy%]
+  const pts = [
+    [SH,8],[SH+.5,14],[pH-1.5,46],[pH-.3,78],
+    [pH+(pEH-pH)*.4,100],[pH+(pEH-pH)*.75,96],
+    [pEH,79],[pEH+.7,60],[(pEH+dH)/2,50],[dH-.3,38],
+    [(dH+dEH)/2,20],[dEH,30],[dEH+.5,58],[dEH+1.5,72],
+    [dEH+2.5,58],[dEH+3.5,40],[EH-1,22],[EH,10],
+  ].map(([h,e])=>[xh(h),ye(e)]);
+
+  function spline(pts) {
+    let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+    for (let i=0;i<pts.length-1;i++) {
+      const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
+      const t=.18;
+      d+=` C${(p1[0]+(p2[0]-p0[0])*t).toFixed(1)},${(p1[1]+(p2[1]-p0[1])*t).toFixed(1)} ${(p2[0]-(p3[0]-p1[0])*t).toFixed(1)},${(p2[1]-(p3[1]-p1[1])*t).toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+    }
+    return d;
+  }
+
+  const line = spline(pts);
+  const area = `${line} L${W},${CH} L0,${CH} Z`;
+
+  // ── Event blocks overlaid on the curve ──────────────────
+  const FIXED = ['meal'];
   const conflicts = [];
 
-  actual.filter(ev => !ev.allDay).forEach(ev => {
-    const t = ev.start || '';
-    if (!t) return;
-    const mins = timeToMins(t);
-    const cat = classifyEvent(ev.title || '');
-    const isFixed = FIXED_CATS.includes(cat);
-    const title30 = (ev.title || 'Event').slice(0, 32);
-    const zone = zoneName(mins);
+  const eventBlocks = actual.filter(ev=>!ev.allDay).map(ev => {
+    const sm = timeToMins(ev.start||'00:00');
+    const em = ev.end ? timeToMins(ev.end) : sm+60;
+    const cat = classifyEvent(ev.title||'');
+    const zone = zoneName(sm);
+    const isConflict = zone==='peak' && !FIXED.includes(cat);
 
-    if (zone === 'peak' && !isFixed) {
-      // Flexible event eating peak time
-      const bestAlt = cat === 'chores' ? `${dipS} (dip zone — admin tasks fit perfectly there)`
-                    : cat === 'exercise' ? `${dipE} (post-dip walk resets your energy naturally)`
-                    : `${dipE} onwards (recovery zone)`;
-      conflicts.push({
-        severity: 'warn',
-        msg: `"${title30}" is in your peak window (${peakS}–${peakE})`,
-        advice: `Peak time is your scarcest resource. Consider moving this to ${bestAlt} and protecting this slot for deep work.`
-      });
-    } else if (zone === 'dip' && cat === 'coaching') {
-      conflicts.push({
-        severity: 'info',
-        msg: `Coaching session "${title30}" lands in your dip (${dipS}–${dipE})`,
-        advice: 'You can run coaching calls on autopilot during the dip — prepare your notes beforehand and keep energy with short breaks.'
-      });
-    } else if (zone === 'post-peak' && cat === 'work') {
-      conflicts.push({
-        severity: 'info',
-        msg: `Work block "${title30}" is post-peak — your focus will be softer here`,
-        advice: 'Use this slot for lighter work (emails, reviews, planning) rather than deep creative or analytical tasks.'
-      });
+    // Conflict cards
+    if (isConflict) {
+      const bestAlt = cat==='chores'?`${dipS} (dip zone)`:cat==='exercise'?`${dipE} (post-dip)`:dipE+' onwards';
+      conflicts.push({severity:'warn', title:`"${(ev.title||'Event').slice(0,30)}" in peak (${peakS}–${peakE})`,
+        why:'Your peak is your scarcest cognitive resource. Every non-deep-work event here costs you your best thinking.',
+        fix:`Move to ${bestAlt} — flexible work fits there and frees your peak for the tasks only your best self can do.`});
+    } else if (zone==='dip' && cat==='coaching') {
+      conflicts.push({severity:'info', title:`Coaching in dip (${dipS}–${dipE})`,
+        why:'Your dip lowers verbal fluency and reaction time slightly — sessions feel heavier.',
+        fix:'Workable with prep: write your session notes beforehand so you can coast on structure rather than sharp thinking.'});
     }
-  });
 
+    // Block color
+    let fill, op=.55;
+    if (isConflict)      { fill='#e02818'; op=.75; }
+    else if(cat==='meal'){ fill='#48b055'; }
+    else if(cat==='exercise'){fill='#18a0b0';}
+    else if(cat==='coaching'){fill='#c8881a';}
+    else                 { fill='#5870a0'; op=.4; }
+
+    const x1=xm(Math.max(SH*60,sm)), x2=xm(Math.min(EH*60,em));
+    const w=Math.max(.8,x2-x1);
+    const warningMark = isConflict ? `<text x="${(x1+w/2).toFixed(1)}" y="8" font-size="7" text-anchor="middle" fill="#e02818" font-weight="bold">⚠</text>` : '';
+    return `<rect x="${x1.toFixed(1)}" y="0" width="${w.toFixed(1)}" height="${CH}" fill="${fill}" opacity="${op}" rx="1.5"/>${warningMark}`;
+  }).join('');
+
+  // ── Time ticks every 2h ──────────────────────────────────
+  const ticks = [];
+  for (let h=SH;h<=EH;h+=2) ticks.push(h);
+
+  // ── Render ───────────────────────────────────────────────
   const noData = actual.length === 0;
+  const nowH = new Date().getHours()+new Date().getMinutes()/60;
+  const inRange = nowH>=SH && nowH<=EH;
+  const nowX = xh(nowH);
 
-  // ── Build smooth gradient ──────────────────────────────────
-  const S = 420, E = 1260, span = E - S; // 7am–9pm in minutes
-  const gp = m => ((Math.max(S, Math.min(E, m)) - S) / span * 100).toFixed(1) + '%';
-  const C = { r:'#b8d432', pk:'#e89c00', pp:'#58a878', dp:'#7090b0', rc:'#18a890', ev:'#c07838' };
-
-  const idealGradient = `linear-gradient(to right,
-    ${C.ev} 0%,
-    ${C.ev} ${gp(pSm-90)},
-    ${C.r}  ${gp(pSm-10)},
-    ${C.pk} ${gp(pSm+25)},
-    ${C.pk} ${gp(pEm-25)},
-    ${C.pp} ${gp(pEm+20)},
-    ${C.pp} ${gp(dSm-25)},
-    ${C.dp} ${gp(dSm+15)},
-    ${C.dp} ${gp(dEm-15)},
-    ${C.rc} ${gp(dEm+25)},
-    ${C.rc} ${gp(dEm+65)},
-    ${C.ev} ${gp(dEm+100)},
-    ${C.ev} 100%)`;
-
-  // Event overlays for actual bar
-  function eventOverlays() {
-    return actual.filter(ev => !ev.allDay).map(ev => {
-      const sm = timeToMins(ev.start || '00:00');
-      const em = ev.end ? timeToMins(ev.end) : sm + 60;
-      const cat = classifyEvent(ev.title || '');
-      const zn = zoneName(sm);
-      let bg, op;
-      if (zn === 'peak' && cat !== 'meal') { bg='#e02818'; op=.72; }
-      else if (cat === 'meal')              { bg='#48b055'; op=.55; }
-      else if (cat === 'exercise')          { bg='#18a0b0'; op=.55; }
-      else if (cat === 'coaching')          { bg='#c8881a'; op=.55; }
-      else                                  { bg='#5870a0'; op=.45; }
-      const left = ((Math.max(S,Math.min(E,sm))-S)/span*100).toFixed(1);
-      const w = Math.max(.8, ((Math.max(S,Math.min(E,em))-S)/span*100) - parseFloat(left)).toFixed(1);
-      return `<div style="position:absolute;top:0;height:100%;left:${left}%;width:${w}%;background:${bg};opacity:${op};border-radius:1px" title="${(ev.title||'').replace(/"/g,"'")}"></div>`;
-    }).join('');
-  }
-
-  // ── How this works explanation ──
   let html = `
-    <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:12px;padding:8px 10px;background:var(--surface);border-radius:8px">
-      <strong style="color:var(--forest);font-size:10px;letter-spacing:1px;font-family:monospace;text-transform:uppercase">How this works</strong><br>
-      The <em>Ideal</em> bar shows when your brain and body work best, based on your profile (peak ${peakS}–${peakE}, dip ${dipS}–${dipE}). It's the same every day — your biological rhythm.<br>
-      The <em>Actual</em> bar maps your real calendar events onto those zones. Conflicts appear where flexible tasks land in the wrong energy window.
+    <div style="font-size:10px;color:var(--muted);font-family:monospace;margin-bottom:6px;line-height:1.5">
+      <span style="color:var(--forest);font-weight:600">Ideal curve</span> = your biology (peak ${peakS}–${peakE}, dip ${dipS}–${dipE}) ·
+      <span style="color:var(--forest);font-weight:600">Coloured blocks</span> = today's events
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:6px;font-size:10px;color:var(--muted);font-family:monospace">
-      <span>07:00</span><span style="flex:1"></span><span>${dipS}</span><span style="flex:1"></span><span>21:00</span>
-    </div>
-    <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-family:monospace">Ideal →</div>
-    <div style="position:relative;height:22px;border-radius:10px;overflow:hidden;margin-bottom:10px;box-shadow:inset 0 1px 4px rgba(0,0,0,.12)">
-      <div style="position:absolute;inset:0;background:${idealGradient}"></div>
-    </div>`;
+    <svg viewBox="0 0 ${W} ${CH+18}" width="100%" style="display:block;overflow:visible">
+      <defs>
+        <linearGradient id="al-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#e89c00" stop-opacity=".55"/>
+          <stop offset="45%"  stop-color="#b8d432" stop-opacity=".32"/>
+          <stop offset="100%" stop-color="#7090b0" stop-opacity=".12"/>
+        </linearGradient>
+      </defs>
+      <!-- Faint grid -->
+      <line x1="0" y1="${ye(50).toFixed(1)}" x2="${W}" y2="${ye(50).toFixed(1)}" stroke="rgba(255,255,255,.06)" stroke-width=".5" stroke-dasharray="3,5"/>
+      <!-- Ideal mountain area -->
+      <path d="${area}" fill="url(#al-fill)"/>
+      <!-- Event blocks overlaid -->
+      ${noData ? '' : eventBlocks}
+      <!-- Ideal curve stroke (drawn on top of blocks so shape is always clear) -->
+      <path d="${line}" fill="none" stroke="#e89c00" stroke-width="1.5" stroke-opacity=".9" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Now indicator -->
+      ${inRange?`<line x1="${nowX.toFixed(1)}" y1="0" x2="${nowX.toFixed(1)}" y2="${CH}" stroke="rgba(255,255,255,.5)" stroke-width=".8" stroke-dasharray="2,3"/>
+      <circle cx="${nowX.toFixed(1)}" cy="${ye(50).toFixed(1)}" r="2.5" fill="#fff" stroke="#e89c00" stroke-width="1.2"/>`:''}
+      <!-- Zone labels at curve peaks/troughs -->
+      <text x="${xh((pH+pEH)/2).toFixed(1)}" y="${(ye(100)-4).toFixed(1)}" font-size="5.5" fill="rgba(232,156,0,.9)" text-anchor="middle" font-family="monospace">PEAK</text>
+      <text x="${xh((dH+dEH)/2).toFixed(1)}" y="${(ye(20)-3).toFixed(1)}" font-size="5.5" fill="rgba(112,144,176,.9)" text-anchor="middle" font-family="monospace">DIP</text>
+      <!-- Time axis -->
+      ${ticks.map(h=>`<text x="${xh(h).toFixed(1)}" y="${(CH+12).toFixed(1)}" font-size="5" fill="rgba(255,255,255,.3)" text-anchor="middle" font-family="monospace">${String(h).padStart(2,'0')}</text>`).join('')}
+      <!-- Profile key ticks -->
+      ${[pH,pEH,dH,dEH].map(h=>`<line x1="${xh(h).toFixed(1)}" y1="${CH}" x2="${xh(h).toFixed(1)}" y2="${CH+5}" stroke="rgba(255,255,255,.28)" stroke-width=".8"/>`).join('')}
+    </svg>`;
 
-  if (noData) {
-    html += `<div style="font-size:11px;color:var(--muted);font-style:italic;margin-bottom:10px">Actual schedule appears here once calendar loads on the Today tab.</div>`;
-  } else {
-    html += `
-    <div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-family:monospace">Actual →</div>
-    <div style="position:relative;height:22px;border-radius:10px;overflow:hidden;margin-bottom:12px;box-shadow:inset 0 1px 4px rgba(0,0,0,.12)">
-      <div style="position:absolute;inset:0;background:${idealGradient}"></div>
-      ${eventOverlays()}
-    </div>`;
-    if (conflicts.length === 0) {
-      html += `<div style="font-size:12px;color:var(--leaf);font-family:monospace;margin-bottom:10px">✓ Good alignment — your schedule respects your energy zones today.</div>`;
-    } else {
-      html += conflicts.map(c => `
-        <div style="margin-bottom:10px;padding:8px 10px;border-radius:6px;background:${c.severity==='warn'?'rgba(224,92,64,0.08)':'rgba(155,139,192,0.08)'};border-left:3px solid ${c.severity==='warn'?'#e05c40':'#9b8bc0'}">
-          <div style="font-size:11px;font-weight:600;color:var(--forest);margin-bottom:3px">${c.severity==='warn'?'⚠️':'ℹ️'} ${c.msg}</div>
-          <div style="font-size:11px;color:var(--muted);line-height:1.5">${c.advice}</div>
-        </div>`).join('');
-    }
-  }
-
-  // ── Full legend ──
-  const legendItems = [
-    ...Object.entries(ZONE_INFO).map(([k,v]) => ({color:v.color, label:v.label, desc:v.desc})),
-    {color:'#e02818', label:'⚠️ Conflict', desc:'Flexible task in peak — worth rescheduling'},
-    {color:'#c8881a', label:'Coaching booked', desc:'Session shown as amber overlay'},
-    {color:'#18a0b0', label:'Exercise', desc:'Movement shown as teal overlay'},
-    {color:'#48b055', label:'Meal', desc:'Meals always fine — green, never flagged'},
-    {color:'#5870a0', label:'Booked (neutral)', desc:'Event outside peak — no conflict'},
-  ];
-
+  // ── Compact colour key ────────────────────────────────────
   html += `
-    <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
-      <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-family:monospace;margin-bottom:8px">Legend</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
-        ${legendItems.map(item=>`
-          <div style="display:flex;align-items:flex-start;gap:6px">
-            <div style="width:10px;height:10px;border-radius:2px;background:${item.color};flex-shrink:0;margin-top:2px"></div>
-            <div>
-              <div style="font-size:10px;font-weight:600;color:var(--forest)">${item.label}</div>
-              <div style="font-size:9px;color:var(--muted);line-height:1.4">${item.desc}</div>
-            </div>
-          </div>`).join('')}
-      </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;margin-bottom:${conflicts.length?'10px':'0'}">
+      ${[
+        {c:'#e89c00',l:'Ideal curve'},
+        {c:'#e02818',l:'⚠ Conflict'},
+        {c:'#c8881a',l:'Coaching'},
+        {c:'#48b055',l:'Meal'},
+        {c:'#18a0b0',l:'Exercise'},
+        {c:'#5870a0',l:'Other'},
+      ].map(x=>`<span style="display:flex;align-items:center;gap:3px;font-size:9px;color:var(--muted);font-family:monospace"><span style="width:8px;height:8px;border-radius:2px;background:${x.c};display:inline-block;flex-shrink:0"></span>${x.l}</span>`).join('')}
     </div>`;
+
+  // ── Conflict cards ────────────────────────────────────────
+  if (noData) {
+    html += `<div style="font-size:11px;color:var(--muted);font-style:italic">Calendar loads after you open Today tab.</div>`;
+  } else if (conflicts.length===0) {
+    html += `<div style="font-size:11px;color:var(--leaf);font-family:monospace">✓ Good alignment — schedule respects your energy zones.</div>`;
+  } else {
+    html += conflicts.map(c=>`
+      <div style="margin-bottom:8px;padding:8px 10px;border-radius:7px;background:${c.severity==='warn'?'rgba(224,40,24,.07)':'rgba(112,144,176,.07)'};border-left:3px solid ${c.severity==='warn'?'#e02818':'#7090b0'}">
+        <div style="font-size:11px;font-weight:600;color:var(--forest);margin-bottom:3px">${c.severity==='warn'?'⚠️':'ℹ️'} ${c.title}</div>
+        <div style="font-size:10px;color:var(--muted);line-height:1.5;margin-bottom:3px"><strong>Why it matters:</strong> ${c.why}</div>
+        <div style="font-size:10px;color:var(--muted);line-height:1.5"><strong>Suggestion:</strong> ${c.fix}</div>
+      </div>`).join('');
+  }
 
   el.innerHTML = html;
 }
